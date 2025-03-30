@@ -47,7 +47,7 @@ df_exploded = df_exploded[df_exploded['release_date'] >= 1970]
 df_exploded = df_exploded[~df_exploded['genre'].isna()]  # Supprimer les valeurs NaN
 
 # Mis à jour des noms de genre
-all_genre_names = df_exploded['genre'].unique()
+all_genre_names = sorted(df_exploded['genre'].unique())  # Trier les genres par ordre alphabétique
 
 # Calculer les moyennes par genre et année pour tout le dataset
 all_budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
@@ -59,7 +59,8 @@ budget_min_avg = all_budget_avg['budget'].min()
 budget_max_avg = all_budget_avg['budget'].max()
 
 revenue_min_avg = all_revenue_avg['revenue'].min()
-revenue_max_avg = all_revenue_avg['revenue'].max()
+# Définir le max du revenu à 400 millions comme demandé
+revenue_max_avg = 400000000  # 400 millions
 
 vote_min_avg = all_vote_avg['vote_average'].min()
 vote_max_avg = all_vote_avg['vote_average'].max()
@@ -174,6 +175,9 @@ def update_heatmaps(selected_metric):
     # Définir les années à afficher (tous les 5 ans)
     tick_years = [year for year in years if (year - 1970) % 5 == 0]
     
+    # Définir l'ordre des genres (identique pour les deux heatmaps)
+    genre_order = all_genre_names
+    
     # Créer la heatmap pour le budget
     budget_fig = go.Figure(data=go.Heatmap(
         z=complete_budget_df['budget'],
@@ -192,6 +196,7 @@ def update_heatmaps(selected_metric):
         hovertemplate=None
     ))
     
+    # Modification pour s'assurer que tous les genres sont affichés
     budget_fig.update_layout(
         title='Budget moyen par genre (depuis 1970, par année)',
         xaxis=dict(
@@ -203,13 +208,18 @@ def update_heatmaps(selected_metric):
         ),
         yaxis=dict(
             title='Genre',
-            categoryorder='category ascending',
-            showticklabels=True
+            categoryorder='array',
+            categoryarray=genre_order,  # Utiliser l'ordre défini
+            showticklabels=True,
+            # Assurer que tous les labels sont affichés
+            tickmode='array',
+            tickvals=list(range(len(genre_order))),
+            ticktext=genre_order
         ),
         coloraxis_colorbar=dict(
             title='Budget moyen (USD)'
         ),
-        margin=dict(l=50, r=50, t=80, b=100)
+        margin=dict(l=150, r=50, t=80, b=100)  # Augmenter la marge gauche pour les labels
     )
     
     # Créer la heatmap pour la métrique sélectionnée
@@ -218,11 +228,17 @@ def update_heatmaps(selected_metric):
         'vote_average': 'Vote moyen'
     }
     
+    # Utiliser les échelles de couleur standard
+    color_scales = {
+        'revenue': 'Blues',
+        'vote_average': 'Greens'
+    }
+    
     metric_fig = go.Figure(data=go.Heatmap(
         z=complete_metric_df[selected_metric],
         x=complete_metric_df['release_date'],
         y=complete_metric_df['genre'],
-        colorscale='Blues',
+        colorscale=color_scales[selected_metric],
         zmin=metric_ranges[selected_metric][0],
         zmax=metric_ranges[selected_metric][1],
         customdata=np.stack((
@@ -246,8 +262,9 @@ def update_heatmaps(selected_metric):
         ),
         yaxis=dict(
             title='',
-            showticklabels=False,
-            categoryorder='category ascending'
+            categoryorder='array',
+            categoryarray=genre_order,  # Utiliser le même ordre que pour le budget
+            showticklabels=False  # Garder à False pour ne pas afficher les labels
         ),
         coloraxis_colorbar=dict(
             title=metric_labels[selected_metric]
