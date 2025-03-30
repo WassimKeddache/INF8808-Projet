@@ -66,42 +66,6 @@ countries_df = countries_df[countries_df['countries'].notna() & (countries_df['c
 # Liste des genres uniques pour le filtre
 all_genres = sorted(list(set([genre for sublist in df['genres_list'].dropna() for genre in sublist])))
 
-# Création des options pour les sliders
-decades = sorted(countries_df['decade'].unique())
-min_year = 1970
-max_year = int(decades[-1]) if decades else 2020
-
-# Création des sliders de seuil pour chaque critère
-revenue_slider = dcc.Slider(
-    id='revenue-threshold-slider',
-    min=1,
-    max=200,
-    step=10,
-    marks={10: '10M$', 50: '50M$', 100: '100M$', 200: '200M$'},
-    value=50,
-    tooltip={"placement": "bottom", "always_visible": True}
-)
-
-popularity_slider = dcc.Slider(
-    id='popularity-threshold-slider',
-    min=5,
-    max=100,
-    step=5,
-    marks={5: '5', 25: '25', 50: '50', 100: '100'},
-    value=25,
-    tooltip={"placement": "bottom", "always_visible": True}
-)
-
-vote_slider = dcc.Slider(
-    id='vote-threshold-slider',
-    min=5,
-    max=9,
-    step=0.5,
-    marks={5: '5', 6: '6', 7: '7', 8: '8', 9: '9'},
-    value=7,
-    tooltip={"placement": "bottom", "always_visible": True}
-)
-
 # Layout de l'application
 app.layout = html.Div(style={'font-family': 'Arial, sans-serif', 'margin': '0', 'padding': '0'}, children=[
     # En-tête
@@ -111,8 +75,8 @@ app.layout = html.Div(style={'font-family': 'Arial, sans-serif', 'margin': '0', 
         'padding': '20px',
         'text-align': 'center'
     }, children=[
-        html.H1('Répartition Géographique des Films à Succès', style={'margin': '0'}),
-        html.P('Analyse de la distribution mondiale des films selon différents critères de succès', 
+        html.H1('Top 10 Pays par Critère de Films', style={'margin': '0'}),
+        html.P('Analyse des pays selon le nombre de films remplissant différents critères', 
                style={'margin-top': '10px'})
     ]),
     
@@ -135,38 +99,16 @@ app.layout = html.Div(style={'font-family': 'Arial, sans-serif', 'margin': '0', 
                 dcc.RadioItems(
                     id='success-criteria',
                     options=[
-                        {'label': 'Revenu total', 'value': 'revenue'},
-                        {'label': 'Popularité moyenne', 'value': 'popularity'},
-                        {'label': 'Note moyenne', 'value': 'vote_average'}
+                        {'label': 'Revenu > 10M$', 'value': 'revenue'},
+                        {'label': 'Note > 7', 'value': 'vote_average'}
                     ],
                     value='revenue',
                     labelStyle={'display': 'block', 'margin': '10px 0'}
                 )
             ]),
             
-            # Slider pour la décennie
-            html.Div(style={'margin-bottom': '20px'}, children=[
-                html.Label('Période (décennie):'),
-                dcc.RangeSlider(
-                    id='decade-slider',
-                    min=min_year,
-                    max=max_year,
-                    step=10,
-                    marks={year: str(year) for year in range(min_year, max_year+1, 10)},
-                    value=[1980, 2020]
-                )
-            ]),
-            
-            # Sliders pour le seuil de succès (tous inclus mais affichés conditionnellement)
-            html.Div(style={'margin-bottom': '20px'}, children=[
-                html.Label('Seuil de succès:'),
-                html.Div(id='revenue-slider-container', style={'display': 'block'}, children=[revenue_slider]),
-                html.Div(id='popularity-slider-container', style={'display': 'none'}, children=[popularity_slider]),
-                html.Div(id='vote-slider-container', style={'display': 'none'}, children=[vote_slider])
-            ]),
-            
             # Sélection du genre
-            html.Div(children=[
+            html.Div(style={'margin-bottom': '20px'}, children=[
                 html.Label('Filtrer par genre:'),
                 dcc.Dropdown(
                     id='genre-filter',
@@ -190,63 +132,35 @@ app.layout = html.Div(style={'font-family': 'Arial, sans-serif', 'margin': '0', 
             'padding': '20px'
         }, children=[
             dcc.Graph(
-                id='choropleth-map',
-                style={'height': '70vh'}
+                id='bar-chart',
+                style={'height': '70vh'},
+                config={'displayModeBar': True}
             ),
-            html.Div(id='map-info', style={'margin-top': '20px', 'text-align': 'center'})
+            html.Div(id='chart-info', style={'margin-top': '20px', 'text-align': 'center'})
         ])
     ])
 ])
 
-# Callback pour afficher le slider approprié en fonction du critère sélectionné
+# Callback pour mettre à jour le graphique en barres
 @callback(
-    [Output('revenue-slider-container', 'style'),
-     Output('popularity-slider-container', 'style'),
-     Output('vote-slider-container', 'style')],
-    [Input('success-criteria', 'value')]
-)
-def toggle_slider_visibility(criteria):
-    revenue_style = {'display': 'block'} if criteria == 'revenue' else {'display': 'none'}
-    popularity_style = {'display': 'block'} if criteria == 'popularity' else {'display': 'none'}
-    vote_style = {'display': 'block'} if criteria == 'vote_average' else {'display': 'none'}
-    return revenue_style, popularity_style, vote_style
-
-# Callback pour mettre à jour la carte choroplèthe
-@callback(
-    [Output('choropleth-map', 'figure'),
-     Output('map-info', 'children'),
+    [Output('bar-chart', 'figure'),
+     Output('chart-info', 'children'),
      Output('debug-info', 'children')],
     [Input('success-criteria', 'value'),
-     Input('decade-slider', 'value'),
-     Input('revenue-threshold-slider', 'value'),
-     Input('popularity-threshold-slider', 'value'),
-     Input('vote-threshold-slider', 'value'),
      Input('genre-filter', 'value')]
 )
-def update_choropleth(criteria, decade_range, revenue_threshold, popularity_threshold, vote_threshold, genre):
-    # Sélectionner le seuil approprié en fonction du critère
+def update_bar_chart(criteria, selected_genre):
+    # Définir le seuil en fonction du critère
     if criteria == 'revenue':
-        threshold = revenue_threshold
-    elif criteria == 'popularity':
-        threshold = popularity_threshold
+        threshold = 10 * 1000000  # 10M$
+        threshold_text = "10M$"
     else:  # vote_average
-        threshold = vote_threshold
+        threshold = 7
+        threshold_text = "7"
     
-    # Filtrer par décennie
-    filtered_df = countries_df[(countries_df['decade'] >= decade_range[0]) & 
-                              (countries_df['decade'] <= decade_range[1])]
-    
-    # Filtrer par genre si sélectionné
-    if genre:
-        filtered_df = filtered_df[filtered_df['genres_list'].apply(lambda x: genre in x if isinstance(x, list) else False)]
-    
-    # Filtrer par seuil de succès et marquer les films qui dépassent le seuil
-    if criteria == 'revenue':
-        filtered_df['meets_threshold'] = filtered_df[criteria] >= threshold * 1000000
-        threshold_text = f"{threshold}M$"
-    else:
-        filtered_df['meets_threshold'] = filtered_df[criteria] >= threshold
-        threshold_text = str(threshold)
+    # Filtrer les films qui dépassent le seuil
+    filtered_df = countries_df.copy()
+    filtered_df['meets_threshold'] = filtered_df[criteria] >= threshold
     
     # Agréger les données par pays - compter le nombre de films qui dépassent le seuil
     agg_df = filtered_df.groupby('countries').agg({
@@ -260,62 +174,131 @@ def update_choropleth(criteria, decade_range, revenue_threshold, popularity_thre
         'title': 'total_films'
     }, inplace=True)
     
-    # Créer la carte choroplèthe
-    if criteria == 'revenue':
-        title = f"Nombre de Films avec Revenu ≥ {threshold_text} par Pays"
-    elif criteria == 'popularity':
-        title = f"Nombre de Films avec Popularité ≥ {threshold} par Pays"
-    else:
-        title = f"Nombre de Films avec Note ≥ {threshold} par Pays"
+    # Trier par nombre de films réussis et prendre les 10 premiers
+    top_countries = agg_df.sort_values('successful_films', ascending=False).head(10)
     
-    # Ajouter des informations pour le hover
-    hover_data = {
-        'total_films': True,
-        'successful_films': True
-    }
+    # Préparer les données pour le graphique
+    countries = top_countries['countries'].tolist()
+    successful_films = top_countries['successful_films'].tolist()
     
-    # Définir une échelle de couleur fixe
-    # Déterminer le maximum global pour l'échelle de couleur
-    max_films = 200  # Valeur maximale fixe pour l'échelle
+    # Préparer les données pour le genre
+    genre_data = [0] * len(countries)
+    ratio_data = [0] * len(countries)
     
-    # Créer la carte choroplèthe avec des teintes de rouge et une échelle fixe
-    fig = px.choropleth(
-        agg_df,
-        locations='countries',
-        locationmode='ISO-3',
-        color='successful_films',  # Utiliser le nombre de films qui dépassent le seuil
-        hover_name='countries',
-        hover_data=hover_data,
-        color_continuous_scale='Reds',
-        range_color=[0, max_films],  # Échelle fixe
-        labels={
-            'successful_films': 'Films qui dépassent le seuil',
-            'total_films': 'Nombre total de films'
-        },
-        title=title
-    )
+    # Si un genre est sélectionné, calculer les données du genre
+    if selected_genre:
+        # Filtrer les films du genre sélectionné
+        genre_filtered_df = filtered_df[filtered_df['genres_list'].apply(lambda x: selected_genre in x if isinstance(x, list) else False)]
+        
+        # Agréger les données par pays pour le genre sélectionné
+        genre_agg_df = genre_filtered_df.groupby('countries').agg({
+            'meets_threshold': 'sum'  # Compte les films du genre qui dépassent le seuil
+        }).reset_index()
+        
+        genre_agg_df.rename(columns={
+            'meets_threshold': 'genre_successful_films'
+        }, inplace=True)
+        
+        # Fusionner avec les pays du top 10
+        genre_top_countries = pd.merge(
+            top_countries[['countries', 'successful_films']], 
+            genre_agg_df, 
+            on='countries', 
+            how='left'
+        ).fillna(0)
+        
+        # Mettre à jour les données du genre
+        genre_data = genre_top_countries['genre_successful_films'].tolist()
+        ratio_data = [g/t*100 if t > 0 else 0 for g, t in zip(genre_data, successful_films)]
     
-    fig.update_layout(
-        geo=dict(
-            showframe=False,
-            showcoastlines=True,
-            projection_type='natural earth'
-        ),
-        margin=dict(l=0, r=0, t=50, b=0),
-        coloraxis_colorbar=dict(
-            title="Nombre de films"
+    # Créer un DataFrame pour le graphique
+    chart_df = pd.DataFrame({
+        'country': countries,
+        'total': successful_films,
+        'genre': genre_data,
+        'ratio': ratio_data
+    })
+    
+    # Trier le DataFrame pour l'affichage (du plus grand au plus petit)
+    chart_df = chart_df.sort_values('total', ascending=True)
+    
+    # Créer le graphique avec Plotly Express (plus stable pour les barres)
+    if selected_genre:
+        # Utiliser un graphique à barres empilées
+        fig = px.bar(
+            chart_df,
+            y='country',
+            x=['genre', 'total'],  # Première valeur = genre, deuxième valeur = reste
+            orientation='h',
+            barmode='relative',  # Mode relatif pour l'empilement
+            color_discrete_sequence=['#e74c3c', '#3498db'],  # Rouge pour genre, bleu pour total
+            labels={
+                'country': 'Pays',
+                'value': 'Nombre de Films',
+                'variable': 'Catégorie'
+            },
+            title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
         )
+        
+        # Modifier la légende
+        fig.data[0].name = selected_genre
+        fig.data[1].name = f'Autres films avec {criteria} > {threshold_text}'
+        
+        # Ajouter des informations personnalisées pour le survol
+        for i, trace in enumerate(fig.data):
+            if i == 0:  # Trace du genre
+                trace.hovertemplate = '<b>%{y}</b><br>' + f'{selected_genre}: ' + '%{x}<br><extra></extra>'
+            else:  # Trace du total
+                trace.hovertemplate = '<b>%{y}</b><br>Total: %{customdata}<br>Ratio: %{text}<extra></extra>'
+                trace.customdata = chart_df['total'].tolist()
+                trace.text = [f"{r:.1f}%" for r in chart_df['ratio'].tolist()]
+    else:
+        # Utiliser un graphique à barres simple
+        fig = px.bar(
+            chart_df,
+            y='country',
+            x='total',
+            orientation='h',
+            color_discrete_sequence=['#3498db'],  # Bleu pour total
+            labels={
+                'country': 'Pays',
+                'total': 'Nombre de Films'
+            },
+            title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
+        )
+        
+        # Modifier la légende
+        fig.data[0].name = f'Films avec {criteria} > {threshold_text}'
+        
+        # Ajouter des informations personnalisées pour le survol
+        fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>'
+    
+    # Mise en page du graphique
+    fig.update_layout(
+        xaxis_title="Nombre de Films",
+        yaxis_title="Pays",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        margin=dict(l=20, r=20, t=60, b=20),
+        height=600
     )
     
     # Texte d'information
-    period_text = f"{decade_range[0]} à {decade_range[1]}"
-    genre_text = f"Genre: {genre}" if genre else "Tous les genres"
-    total_successful = agg_df['successful_films'].sum()
-    total_films = agg_df['total_films'].sum()
+    genre_text = f"Genre: {selected_genre}" if selected_genre else "Aucun genre sélectionné"
+    total_successful = sum(successful_films)
+    
+    # Si un genre est sélectionné, calculer le total pour ce genre
+    genre_total = sum(genre_data) if selected_genre else 0
+    ratio_text = f"Ratio {selected_genre}/Total: {genre_total/total_successful*100:.1f}%" if selected_genre and total_successful > 0 else ""
     
     info_text = html.Div([
-        html.P(f"Période: {period_text} | {genre_text} | Seuil de succès: {threshold_text}"),
-        html.P(f"Films qui dépassent le seuil: {total_successful} sur {total_films} films ({(total_successful/total_films*100):.1f}%)")
+        html.P(f"Critère: {criteria} > {threshold_text} | {genre_text}"),
+        html.P(f"Total des films dans le top 10 pays: {total_successful} {ratio_text}")
     ])
     
     # Information de débogage
