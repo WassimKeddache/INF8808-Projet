@@ -470,7 +470,7 @@ def update_selection(entity_type, metric, click_data):
         df_to_use = directors_agg
         entity_type_display = "Réalisateurs"
         note_text = ""
-        count = 150
+        count = 30
     else:  # studios
         df_to_use = studios_agg
         entity_type_display = "Studios"
@@ -606,26 +606,39 @@ def update_selection(entity_type, metric, click_data):
 
         entity_name = click_data["points"][0]["label"]
 
-        actor_movies = actors_df[actors_df["entity_name"] == entity_name].sort_values(
-            by="release_date", ascending=True
-        )
+        if entity_type == "actors":
+            df_to_use = actors_df
+            mini_title = f"Liste de revenu pour l'acteur : {entity_name}"
+        elif entity_type == "directors":
+            df_to_use = directors_df
+            mini_title = f"Liste de revenu pour le directeur : {entity_name}"
+        else:  # studios
+            df_to_use = studios_df
+            mini_title = f"Liste de revenu pour le studio : {entity_name}"
 
-        # release_date -> date
-        # revenue -> revenue ? (ou je dois faire revenu - budget??)
+        elems = barchar_mini.get_graph_info(df_to_use, "time", entity_name)
 
-        print(actor_movies.columns)
+        movie_titles = elems["title"].tolist()
+        movie_revenues = elems["revenue"].tolist()
+        movie_release_date = elems["release_date"].tolist()
 
-        movie_titles = actor_movies["title"].tolist()
-        movie_revenues = actor_movies["revenue"].tolist()
-
-        for j, (title, revenue) in enumerate(zip(movie_titles, movie_revenues)):
+        for j, (title, revenue, release_date) in enumerate(
+            zip(movie_titles, movie_revenues, movie_release_date)
+        ):
+            annee = int(release_date.split("-")[0])
             mini_fig.add_trace(
                 go.Bar(
                     x=[title],
                     y=[revenue],
                     text=[row["formatted_value"]],
                     hoverinfo="text",
-                    hovertext=[f"<b> Revenu total :<b> {revenue}"],
+                    hovertext=[
+                        " <b> {display_title} <b> <br>".format(display_title=title)
+                        + "<b> Revenu total :</b> {display_revenue:.2f} M <br>".format(
+                            display_revenue=revenue / 1000000
+                        )
+                        + "<b> Year :</b> {year} <br>".format(year=annee)
+                    ],
                     marker_color=colors[i],
                     textposition="outside",
                     textfont_size=10,
@@ -634,7 +647,6 @@ def update_selection(entity_type, metric, click_data):
                 )
             )
         # Update mini chart layout
-        mini_title = f"Liste de revenu pour l'acteur : {entity_name}"
         mini_fig.update_layout(
             title={
                 "text": mini_title,

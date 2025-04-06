@@ -81,3 +81,14 @@ def get_figure(film_data, actor):
     )
 
     return fig
+
+
+def get_graph_info(data, metric, entity_name):
+    if metric == "revenue":
+        return data[data["entity_name"] == entity_name].sort_values(
+            by="revenue", ascending=False
+        )
+    else:
+        return data[data["entity_name"] == entity_name].sort_values(
+            by="release_date", ascending=True
+        )
