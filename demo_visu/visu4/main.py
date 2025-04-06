@@ -27,7 +27,7 @@ app = dash.Dash(__name__)
 app.title = "Visu 4"
 
 # Chargement des données
-df = pd.read_csv("../data/combined.csv")
+df = pd.read_csv("../../data/combined.csv")
 
 # Vérification et correction des valeurs de revenus
 print("Vérification des données de revenus...")
@@ -605,13 +605,15 @@ def update_selection(entity_type, metric, click_data):
         mini_fig = go.Figure()
 
         entity_name = click_data["points"][0]["label"]
-        # entity_id FIND ENTITY ID FROM ACTOR
 
-        print(f"Entity name : {entity_name}\nEntity ID : {entity_id}")
-
-        actor_movies = actors_df[actors_df["entity_id"] == entity_id].sort_values(
-            by="vote_average", ascending=False
+        actor_movies = actors_df[actors_df["entity_name"] == entity_name].sort_values(
+            by="release_date", ascending=True
         )
+
+        # release_date -> date
+        # revenue -> revenue ? (ou je dois faire revenu - budget??)
+
+        print(actor_movies.columns)
 
         movie_titles = actor_movies["title"].tolist()
         movie_revenues = actor_movies["revenue"].tolist()
