@@ -19,7 +19,7 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 
 from components.header import get_header
-from components.heatmap_budget import get_heatmap_budget
+from components.heatmap_budget.heatmap_budget import get_heatmap_budget, get_heatmap_budget_text
 
 #import preprocess as preproc
 header = get_header()
@@ -29,18 +29,20 @@ app = dash.Dash(__name__)
 app.title = 'Projet | INF8808'
 
 app.layout = html.Div(
-    className='column',
+    className='app-container',
     children=[
         html.Header(
+            className='main-header',
             children=[
-                header
+                get_header()
             ]
         ),
         html.Main(
+            className='main-content',
             children=[
-                heatmap_budget
+                get_heatmap_budget_text(),
+                get_heatmap_budget()
             ]
         )
-
     ]
 )
