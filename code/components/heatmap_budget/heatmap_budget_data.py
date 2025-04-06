@@ -1,18 +1,16 @@
 import json
 import pandas as pd
 
-class Data:
+class HeatmapBudgetData:
     def __init__(self):
         df = pd.read_csv("../data/combined.csv")
 
-        # Appliquer la fonction pour extraire les genres
         df['genres_list'] = df['genres'].apply(self.extract_genres)
 
-        # Convertir les dates et supprimer les valeurs NaN AVANT la conversion en entier
-        df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')  # Handle invalid dates with 'coerce'
-        df = df.dropna(subset=['release_date'])  # Supprimer les lignes avec des dates invalides
-        df['release_date'] = df['release_date'].dt.year  # Extract the year
-        df['release_date'] = df['release_date'].astype(int)  # Maintenant on peut convertir en entier sans problème
+        df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
+        df = df.dropna(subset=['release_date'])
+        df['release_date'] = df['release_date'].dt.year
+        df['release_date'] = df['release_date'].astype(int)
 
         self.preprocess_heatmap_data(df)
 
@@ -105,4 +103,4 @@ class Data:
     def get_heatmap_data(self):
         return self.heatmap_data
 
-data_instance = Data()
+data_instance = HeatmapBudgetData()

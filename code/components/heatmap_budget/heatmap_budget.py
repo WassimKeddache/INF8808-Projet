@@ -7,58 +7,65 @@ import plotly.graph_objects as go
 import json
 from datetime import datetime
 import numpy as np
-from data import data_instance
+from .heatmap_budget_data import data_instance
 
 def get_heatmap_budget():
     return html.Div(className='content', children=[
-    html.Div(className='viz-container', children=[
-        # Conteneur pour les deux heatmaps
-        html.Div(className='heatmaps-container', style={'display': 'flex'}, children=[
-            # Heatmap de gauche (budget)
-            html.Div(className='heatmap-left', style={'width': '50%'}, children=[
-                html.H3('Budget moyen par genre et année'),
-                dcc.Graph(id='budget-heatmap')
+        html.Div(className='dashboard-card', children=[
+            # Main content
+            html.Div(className='card-content', children=[
+                # Conteneur pour les deux heatmaps - toujours côte à côte
+                html.Div(className='heatmaps-container', children=[
+                    # Heatmap de gauche (budget)
+                    dcc.Graph(
+                        id='budget-heatmap',
+                        config={'displayModeBar': False},
+                        className='heatmap-graph'
+                    ),
+                    
+                    # Heatmap de droite (métrique sélectionnable)
+                    dcc.Graph(
+                        id='metric-heatmap',
+                        config={'displayModeBar': False},
+                        className='heatmap-graph'
+                    )
+                ]),
+                
+                # Rangée avec le choix de métrique à gauche et hover info centré
+                html.Div(className='controls-and-info-row', children=[
+                    # Choix de métrique à gauche
+                    html.Div(className='metric-selector-container', children=[
+                        html.Label('Sélectionner une métrique:', className='control-label'),
+                        dcc.RadioItems(
+                            id='metric-selector',
+                            options=[
+                                {'label': 'Revenu moyen', 'value': 'revenue'},
+                                {'label': 'Vote moyen', 'value': 'vote_average'}
+                            ],
+                            value='revenue',
+                            className='radio-group',
+                            inputClassName='radio-input',
+                            labelClassName='radio-label'
+                        )
+                    ]),
+                    
+                    # Hover info centré
+                    html.Div(id='hover-info', className='hover-info-panel', style={
+                        'padding': '8px 12px',
+                        'minHeight': '40px',
+                        'display': 'none',  # Caché par défaut
+                        'flex': '1',
+                        'marginLeft': '20px',
+                        'max-width': 'fit-content',
+                        'min-width': '400px',
+                    })
+                ]),
             ]),
-            
-            # Heatmap de droite (métrique sélectionnable)
-            html.Div(className='heatmap-right', style={'width': '50%'}, children=[
-                html.H3('Métrique par genre et année'),
-                dcc.Graph(id='metric-heatmap')
-            ])
-        ]),
-        
-        # Div pour afficher les informations de survol combinées
-        html.Div(id='hover-info', style={
-            'padding': '10px',
-            'backgroundColor': '#f9f9f9',
-            'border': '1px solid #ddd',
-            'borderRadius': '5px',
-            'marginTop': '10px',
-            'minHeight': '50px',
-            'display': 'none'  # Caché par défaut
-        }),
-        
-        # Contrôles (seulement le sélecteur de métrique, pas de slider)
-        html.Div(className='controls', children=[
-            # Sélecteur de métrique pour la heatmap de droite
-            html.Div(className='metric-selector', children=[
-                html.Label('Sélectionner une métrique:'),
-                dcc.RadioItems(
-                    id='metric-selector',
-                    options=[
-                        {'label': 'Revenu moyen', 'value': 'revenue'},
-                        {'label': 'Vote moyen', 'value': 'vote_average'}
-                    ],
-                    value='revenue',
-                    labelStyle={'display': 'inline-block', 'margin-right': '20px'}
-                )
-            ])
         ]),
         
         # Store pour stocker les données des heatmaps
         dcc.Store(id='heatmap-data-store')
     ])
-])
 
 # Callback pour mettre à jour les deux heatmaps en fonction du sélecteur de métrique
 @callback(
@@ -119,7 +126,6 @@ def update_heatmaps(selected_metric):
             tickangle=90
         ),
         yaxis=dict(
-            title='Genre',
             categoryorder='array',
             categoryarray=genre_order,  # Utiliser l'ordre défini
             showticklabels=True,
@@ -245,3 +251,17 @@ def update_hover_info(budget_hover, metric_hover, selected_metric, current_style
     current_style['display'] = 'block'
     
     return hover_info, current_style
+
+def get_heatmap_budget_text():
+    return html.Div(
+        className='text',
+        children=[
+            html.H1(
+                "Genre et budget",
+            ),
+            html.P(
+                "A CHANGER ------------------- Cette section présente deux heatmaps côte à côte. La première heatmap affiche le budget moyen par genre et année, tandis que la seconde heatmap affiche une métrique sélectionnable (revenu moyen ou vote moyen) par genre et année. "
+                "Les utilisateurs peuvent interagir avec les heatmaps pour explorer les données et obtenir des informations sur les tendances cinématographiques."
+            )
+        ]
+    )
