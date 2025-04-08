@@ -26,6 +26,7 @@ import preprocess
 app = dash.Dash(__name__)
 app.title = "Visu 4"
 
+actor_selected = None
 
 # Chargement des données
 df = pd.read_csv("../../data/combined.csv")
@@ -447,6 +448,10 @@ app.layout = html.Div(
                         html.Div(
                             style={"margin-bottom": "20px"},
                             children=[
+                                html.Textarea(
+                                    id="actor-selected",
+                                    style={"text-align": "center"},
+                                ),
                                 html.Label("Ordre des films:"),
                                 dcc.RadioItems(
                                     id="mini-order",
@@ -481,18 +486,22 @@ app.layout = html.Div(
         Output("mini-bar-chart", "figure"),
         Output("chart-info", "children"),
         Output("data-info", "children"),
+        Output("actor-selected", "value"),
     ],
     [
         Input("entity-type", "value"),
         Input("success-metric", "value"),
         Input("main-bar-chart", "clickData"),
         Input("mini-order", "value"),
+        Input("actor-selected", "value"),
     ],
 )
-def update_selection(entity_type, metric, click_data, mini_order):
+def update_selection(entity_type, metric, click_data, mini_order, actor_selected):
     # Use callback_context to determine which input triggered the callback
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
+
+    print("Actor selected : ", actor_selected)
 
     if entity_type == "actors":
         df_to_use = actors_agg
@@ -635,10 +644,20 @@ def update_selection(entity_type, metric, click_data, mini_order):
         ]
     )
 
-    if trigger_id == "main-bar-chart" and click_data is not None:
+    if trigger_id == "success-metric":
+        entity_name = None
+
+    if (trigger_id == "main-bar-chart" and click_data is not None) or (
+        trigger_id == "mini-order" and actor_selected != None
+    ):
         mini_fig = go.Figure()
 
-        entity_name = click_data["points"][0]["label"]
+        if trigger_id == "main-bar-chart":
+            entity_name = click_data["points"][0]["label"]
+        else:
+            entity_name = actor_selected
+
+        actor_selected = entity_name
 
         if entity_type == "actors":
             df_to_use = actors_df
@@ -710,7 +729,7 @@ def update_selection(entity_type, metric, click_data, mini_order):
     else:
         mini_fig = barchar_mini.get_empty_figure()
 
-    return (fig, mini_fig, chart_info, data_info)
+    return (fig, mini_fig, chart_info, data_info, actor_selected)
 
 
 if __name__ == "__main__":
