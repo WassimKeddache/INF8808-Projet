@@ -26,6 +26,7 @@ import preprocess
 app = dash.Dash(__name__)
 app.title = "Visu 4"
 
+
 # Chargement des données
 df = pd.read_csv("../../data/combined.csv")
 
@@ -418,19 +419,51 @@ app.layout = html.Div(
                 ),
                 # Zone mini vis
                 html.Div(
-                    style={
-                        "flex": "1",
-                        "min-width": "600px",
-                        "background-color": "white",
-                        "border-radius": "5px",
-                        "box-shadow": "0 2px 4px rgba(0,0,0,0.1)",
-                        "padding": "20px",
-                    },
+                    style={"display": "flex", "flex-wrap": "wrap", "padding": "20px"},
                     children=[
-                        dcc.Graph(id="mini-bar-chart", style={"height": "70vh"}),
                         html.Div(
-                            id="mini-chart-info",
-                            style={"margin-top": "20px", "text-align": "center"},
+                            style={
+                                "flex": "1",
+                                "min-width": "600px",
+                                "background-color": "white",
+                                "border-radius": "5px",
+                                "box-shadow": "0 2px 4px rgba(0,0,0,0.1)",
+                                "padding": "20px",
+                            },
+                            children=[
+                                dcc.Graph(
+                                    id="mini-bar-chart", style={"height": "70vh"}
+                                ),
+                                html.Div(
+                                    id="mini-chart-info",
+                                    style={
+                                        "margin-top": "20px",
+                                        "text-align": "center",
+                                    },
+                                ),
+                            ],
+                        ),
+                        # Selection de l'ordre
+                        html.Div(
+                            style={"margin-bottom": "20px"},
+                            children=[
+                                html.Label("Ordre des films:"),
+                                dcc.RadioItems(
+                                    id="mini-order",
+                                    options=[
+                                        {
+                                            "label": "Revenus",
+                                            "value": "revenue",
+                                        },
+                                        {
+                                            "label": "Date de sortie",
+                                            "value": "date",
+                                        },
+                                    ],
+                                    value="revenue",
+                                    labelStyle={"display": "block", "margin": "10px 0"},
+                                ),
+                            ],
                         ),
                     ],
                 ),
@@ -453,9 +486,10 @@ app.layout = html.Div(
         Input("entity-type", "value"),
         Input("success-metric", "value"),
         Input("main-bar-chart", "clickData"),
+        Input("mini-order", "value"),
     ],
 )
-def update_selection(entity_type, metric, click_data):
+def update_selection(entity_type, metric, click_data, mini_order):
     # Use callback_context to determine which input triggered the callback
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
@@ -616,7 +650,7 @@ def update_selection(entity_type, metric, click_data):
             df_to_use = studios_df
             mini_title = f"Liste de revenu pour le studio : {entity_name}"
 
-        elems = barchar_mini.get_graph_info(df_to_use, "time", entity_name)
+        elems = barchar_mini.get_graph_info(df_to_use, mini_order, entity_name)
 
         movie_titles = elems["title"].tolist()
         movie_revenues = elems["revenue"].tolist()
@@ -672,6 +706,7 @@ def update_selection(entity_type, metric, click_data):
             height=600,
             showlegend=False,
         )
+
     else:
         mini_fig = barchar_mini.get_empty_figure()
 
