@@ -130,11 +130,17 @@ body {
     margin-top: 10px;
     min-height: 60px;
     width: 100%;
+    gap: 10px;
 }
 
 /* Conteneur du sélecteur de métrique */
 .metric-selector-container {
     width: 40%;
+}
+
+.metric-selector-container.radio-group {
+    width: 100%;
+    align-items: right;
 }
 
 .heatmap-hover-info {
@@ -162,7 +168,7 @@ body {
 .heatmap-hover-label {
     color: var(--primary-color);
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 1000;
     text-align: left;
     width: 50%;
 }
@@ -185,28 +191,40 @@ body {
 
 .radio-group {
     display: flex;
-    gap: 12px;
+    gap: 100px;
 }
 
 .radio-label {
     display: flex;
     align-items: center;
     cursor: pointer;
-    padding: 6px 10px;
     border-radius: 4px;
     transition: background-color 0.2s;
-    font-size: 0.9rem;
+    font-size: 2rem;
+    font-weight: 1000;
+    color: var(--primary-color);
 }
 
 .radio-label:hover {
     background-color: rgba(196, 30, 58, 0.1);
-    /* Rouge très clair pour le hover */
 }
 
 .radio-input {
-    margin-right: 6px;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    background-color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
+.radio-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
 
 /* Responsive design - GARDER les heatmaps côte à côte */
 @media (max-width: 768px) {

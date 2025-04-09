@@ -231,9 +231,31 @@ def update_heatmaps(selected_metric):
 def update_hover_info(budget_hover, metric_hover, selected_metric):
     # Déterminer quel graphique a déclenché le callback
     ctx = dash.callback_context
+
+    default_hover = html.Div(
+        className='heatmap-hover-info',
+        children=[
+            html.Div(
+                className="heatmap-hover-label-container",
+                children=[
+                    html.Span("Sélectionnez une cellule pour voir les détails.", className="heatmap-hover-label"),
+                    html.Span("", className="heatmap-hover-value"),
+                    html.Span("", className="heatmap-hover-label"),
+                    html.Span("", className="heatmap-hover-value"),
+                ]
+            ),
+            html.Div(className="heatmap-hover-label-container", children=[
+                html.Strong("", className="heatmap-hover-label"),
+                html.Span("", className="heatmap-hover-value"),
+                html.Strong("", className="heatmap-hover-label"),
+                html.Span("", className="heatmap-hover-value")
+            ])
+        ]
+    )
+    
     if not ctx.triggered:
         # Si aucun déclencheur, cacher le div
-        return [html.Div()]
+        return [default_hover]
     
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
@@ -244,7 +266,7 @@ def update_hover_info(budget_hover, metric_hover, selected_metric):
         hover_data = metric_hover['points'][0]
     else:
         # Si pas de données de survol, cacher le div
-        return [html.Div()]
+        return [default_hover]
     
     # Extraire les données personnalisées
     genre = hover_data['customdata'][0]
