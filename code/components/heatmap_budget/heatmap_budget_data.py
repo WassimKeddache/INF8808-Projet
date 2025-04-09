@@ -51,8 +51,8 @@ class HeatmapBudgetData:
         # Définir le max du revenu à 400 millions comme demandé
         revenue_max_avg = 400000000  # 400 millions
 
-        vote_min_avg = all_vote_avg['vote_average'].min()
-        vote_max_avg = all_vote_avg['vote_average'].max()
+        vote_min_avg = 0
+        vote_max_avg = 10
 
         # Dictionnaire des plages de valeurs pour chaque métrique (basé sur les moyennes)
         metric_ranges = {

@@ -9,13 +9,13 @@ def get_header():
                 className='header-content',
                 children=[
                     html.H1(
-                        "Analyse des Films",
+                        "LE SUCCÈS AU CINÉMA",
                         className='app-title'
                     ),
                     html.Div(
                         className='header-subtitle',
                         children=[
-                            "Exploration des tendances cinématographiques par genre et année"
+                            "Exploration des tendances cinématographiques"
                         ]
                     )
                 ]

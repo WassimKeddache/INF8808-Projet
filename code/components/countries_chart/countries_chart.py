@@ -10,10 +10,9 @@ import numpy as np
 from .countries_chart_data import data_instance
 
 def get_countries_chart():
-    return html.Div(style={'font-family': 'Arial, sans-serif', 'margin': '0', 'padding': '0'}, children=[
+    return html.Div(style={'margin': '0', 'padding': '0'}, children=[
     # Conteneur principal
     html.Div(style={'display': 'flex', 'flex-wrap': 'wrap', 'padding': '20px'}, children=[
-        # Panneau de contrôle
         html.Div(style={
             'width': '300px',
             'padding': '20px',
@@ -79,7 +78,8 @@ def get_countries_chart():
      Input('genre-filter', 'value')]
 )
 def update_bar_chart(criteria, selected_genre):
-    # Définir le seuil en fonction du critère
+    # TODO Rendre max abcisse fix
+
     if criteria == 'revenue':
         threshold = 10 * 1000000  # 10M$
         threshold_text = "10M$"
@@ -91,56 +91,33 @@ def update_bar_chart(criteria, selected_genre):
     filtered_df = data_instance.get_data()['df']
     filtered_df['meets_threshold'] = filtered_df[criteria] >= threshold
     
-    # Agréger les données par pays - compter le nombre de films qui dépassent le seuil
-    agg_df = filtered_df.groupby('countries').agg({
-        'meets_threshold': 'sum',  # Compte les films qui dépassent le seuil
-        'title': 'count'           # Compte total de films
-    }).reset_index()
+    agg_df = filtered_df.groupby('countries').agg({'meets_threshold': 'sum', 'title': 'count' }).reset_index()
     
-    # Renommer les colonnes pour plus de clarté
-    agg_df.rename(columns={
-        'meets_threshold': 'successful_films',
-        'title': 'total_films'
-    }, inplace=True)
+    agg_df.rename(columns={'meets_threshold': 'successful_films', 'title': 'total_films'}, inplace=True)
     
-    # Trier par nombre de films réussis et prendre les 10 premiers
-    top_countries = agg_df.sort_values('successful_films', ascending=False).head(10)
+
+    top_countries = agg_df.sort_values('successful_films', ascending=False).head(10) # Top 10 pays par nombre de films réussis
     
-    # Préparer les données pour le graphique
     countries = top_countries['countries'].tolist()
     successful_films = top_countries['successful_films'].tolist()
     
-    # Préparer les données pour le genre
     genre_data = [0] * len(countries)
     ratio_data = [0] * len(countries)
     
-    # Si un genre est sélectionné, calculer les données du genre
     if selected_genre:
-        # Filtrer les films du genre sélectionné
         genre_filtered_df = filtered_df[filtered_df['genres_list'].apply(lambda x: selected_genre in x if isinstance(x, list) else False)]
         
-        # Agréger les données par pays pour le genre sélectionné
-        genre_agg_df = genre_filtered_df.groupby('countries').agg({
-            'meets_threshold': 'sum'  # Compte les films du genre qui dépassent le seuil
-        }).reset_index()
+        genre_agg_df = genre_filtered_df.groupby('countries').agg({'meets_threshold': 'sum'}).reset_index()
         
-        genre_agg_df.rename(columns={
-            'meets_threshold': 'genre_successful_films'
-        }, inplace=True)
+        genre_agg_df.rename(columns={'meets_threshold': 'genre_successful_films'}, inplace=True)
         
-        # Fusionner avec les pays du top 10
-        genre_top_countries = pd.merge(
-            top_countries[['countries', 'successful_films']], 
-            genre_agg_df, 
-            on='countries', 
-            how='left'
-        ).fillna(0)
+        genre_top_countries = pd.merge(top_countries[['countries', 'successful_films']], genre_agg_df, on='countries', how='left').fillna(0)
         
         # Mettre à jour les données du genre
         genre_data = genre_top_countries['genre_successful_films'].tolist()
         ratio_data = [g/t*100 if t > 0 else 0 for g, t in zip(genre_data, successful_films)]
     
-    # Créer un DataFrame pour le graphique
+    # DataFrame pour le graphique
     chart_df = pd.DataFrame({
         'country': countries,
         'total': successful_films,
@@ -148,18 +125,15 @@ def update_bar_chart(criteria, selected_genre):
         'ratio': ratio_data
     })
     
-    # Trier le DataFrame pour l'affichage (du plus grand au plus petit)
     chart_df = chart_df.sort_values('total', ascending=True)
     
-    # Créer le graphique avec Plotly Express (plus stable pour les barres)
     if selected_genre:
-        # Utiliser un graphique à barres empilées
         fig = px.bar(
             chart_df,
             y='country',
-            x=['genre', 'total'],  # Première valeur = genre, deuxième valeur = reste
+            x=['genre', 'total'],
             orientation='h',
-            barmode='relative',  # Mode relatif pour l'empilement
+            barmode='relative',
             color_discrete_sequence=['#e74c3c', '#3498db'],  # Rouge pour genre, bleu pour total
             labels={
                 'country': 'Pays',
@@ -168,8 +142,7 @@ def update_bar_chart(criteria, selected_genre):
             },
             title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
         )
-        
-        # Modifier la légende
+
         fig.data[0].name = selected_genre
         fig.data[1].name = f'Autres films avec {criteria} > {threshold_text}'
         
@@ -182,7 +155,6 @@ def update_bar_chart(criteria, selected_genre):
                 trace.customdata = chart_df['total'].tolist()
                 trace.text = [f"{r:.1f}%" for r in chart_df['ratio'].tolist()]
     else:
-        # Utiliser un graphique à barres simple
         fig = px.bar(
             chart_df,
             y='country',
@@ -196,13 +168,9 @@ def update_bar_chart(criteria, selected_genre):
             title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
         )
         
-        # Modifier la légende
-        fig.data[0].name = f'Films avec {criteria} > {threshold_text}'
-        
-        # Ajouter des informations personnalisées pour le survol
-        fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>'
+        fig.data[0].name = f'Films avec {criteria} > {threshold_text}' # Modifier la légende
+        fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>' # Ajouter des informations personnalisées pour le survol
     
-    # Mise en page du graphique
     fig.update_layout(
         xaxis_title="Nombre de Films",
         yaxis_title="Pays",
@@ -217,11 +185,9 @@ def update_bar_chart(criteria, selected_genre):
         height=600
     )
     
-    # Texte d'information
-    genre_text = f"Genre: {selected_genre}" if selected_genre else "Aucun genre sélectionné"
+    genre_text = f"Genre: {selected_genre}" if selected_genre else "Aucun genre sélectionné" # Texte d'information
     total_successful = sum(successful_films)
     
-    # Si un genre est sélectionné, calculer le total pour ce genre
     genre_total = sum(genre_data) if selected_genre else 0
     ratio_text = f"Ratio {selected_genre}/Total: {genre_total/total_successful*100:.1f}%" if selected_genre and total_successful > 0 else ""
     
@@ -240,7 +206,8 @@ def get_countries_chart_text():
         className='text',
         children=[
             html.H1(
-                "Pays",
+                "PAYS",
+                className='text-title'
             ),
             html.P(
                 """
@@ -254,6 +221,7 @@ def get_countries_chart_text():
                 id tincidunt sapien risus a quam. Maecenas fermentum consequat mi. Donec fermentum. Pellentesque malesuada nulla a mi. 
                 Duis sapien sem, aliquet nec, commodo eget, consequat quis, neque.
                 """,
+                className='text-paragraph'
             ),
         ],
     )
