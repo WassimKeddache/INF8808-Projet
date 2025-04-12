@@ -122,6 +122,18 @@ body {
     font-weight: 1000 !important;
 }
 
+.plotly text.legendtitletext {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 1000 !important;
+}
+
+.plotly text.legendtext {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+}
+
 /* Rangée avec contrôles et info */
 .controls-and-info-row {
     display: flex;
@@ -200,7 +212,7 @@ body {
     cursor: pointer;
     border-radius: 4px;
     transition: background-color 0.2s;
-    font-size: 2rem;
+    font-size: 1.7rem;
     font-weight: 1000;
     color: var(--primary-color);
 }
@@ -224,6 +236,90 @@ body {
 .radio-input:checked {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+}
+
+#genre-filter {
+    width: 100%;
+    max-width: 400px;
+    margin: 10px auto;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    color: var(--primary-color);
+    font-weight: 1000;
+}
+
+/* Style du menu déroulant */
+.Select-menu {
+    background-color: #fff;
+    /* Couleur de fond */
+    /* Bordure rouge */
+    border-radius: 4px;
+    /* Coins arrondis */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Ombre */
+    z-index: 1000;
+    /* Assure que le menu est au-dessus */
+}
+
+/* Style des options */
+.Select-option {
+    padding: 10px;
+    /* Espacement interne */
+    font-size: 14px;
+    /* Taille de la police */
+    color: #333;
+    /* Couleur du texte */
+    cursor: pointer;
+    /* Curseur en mode clic */
+    transition: background-color 0.2s ease;
+    /* Transition fluide */
+}
+
+/* Option sélectionnée */
+.Select-value-label {
+    color: var(--primary-color) !important
+}
+
+/* Style du placeholder */
+.Select-placeholder {
+    color: #aaa;
+    /* Couleur du placeholder */
+    font-style: italic;
+    /* Style italique */
+}
+
+.countries-card-content {
+    display: flex;
+    flex-direction: row;
+}
+
+.countries-card-label {
+    font-size: 2rem;
+    font-weight: 1000;
+    color: var(--primary-color);
+}
+
+.countries-card-pannel {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: left;
+    width: 20%;
+    padding: 20px;
+    gap: 50px;
+}
+
+.countries-chart-container {
+    height: 100%;
+    width: 80%;
+}
+
+.chart-info {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--primary-color);
+    font-size: 1rem;
+    font-weight: 400;
 }
 
 /* Responsive design - GARDER les heatmaps côte à côte */
@@ -304,4 +400,5 @@ body {
     font-weight: 400;
     margin-left: 40px;
     margin-right: 40px;
+    margin-bottom: 100px;
 }

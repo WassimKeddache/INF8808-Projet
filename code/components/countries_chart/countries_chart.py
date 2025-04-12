@@ -10,70 +10,60 @@ import numpy as np
 from .countries_chart_data import data_instance
 
 def get_countries_chart():
-    return html.Div(style={'margin': '0', 'padding': '0'}, children=[
-    # Conteneur principal
-    html.Div(style={'display': 'flex', 'flex-wrap': 'wrap', 'padding': '20px'}, children=[
-        html.Div(style={
-            'width': '300px',
-            'padding': '20px',
-            'background-color': '#f8f9fa',
-            'border-radius': '5px',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
-            'margin-right': '20px'
-        }, children=[
-            html.H3('Critères de Succès'),
-            
-            # Sélection du critère de succès
-            html.Div(style={'margin-bottom': '20px'}, children=[
-                html.Label('Sélectionner le critère:'),
-                dcc.RadioItems(
-                    id='success-criteria',
-                    options=[
-                        {'label': 'Revenu > 10M$', 'value': 'revenue'},
-                        {'label': 'Note > 7', 'value': 'vote_average'}
-                    ],
-                    value='revenue',
-                    labelStyle={'display': 'block', 'margin': '10px 0'}
+    return html.Div(className='content', children=[
+        # Conteneur principal
+        html.Div(className='dashboard-card', children=[
+            html.Div(className='countries-card-content', children=[
+                html.Div( className='countries-card-pannel', children=[
+                        
+                        html.Div(children=[
+                            html.H3('Critères de Succès', className='countries-card-label'),
+                            dcc.RadioItems(
+                                id='success-criteria',
+                                options=[
+                                    {'label': 'Revenu > 10M$', 'value': 'revenue'},
+                                    {'label': 'Note > 7', 'value': 'vote_average'}
+                                ],
+                                value='revenue',
+                                inputClassName='radio-input',
+                                labelClassName='radio-label'
+                            )
+                        ]),
+                        
+                        # Sélection du genre
+                        html.Div(children=[
+                            html.Label('Filtrer par genre:', className='countries-card-label'),
+                            dcc.Dropdown(
+                                id='genre-filter',
+                                options=[{'label': genre, 'value': genre} for genre in data_instance.get_data()['all_genres']],
+                                value=None,
+                                placeholder='Tous les genres'
+                            )
+                        ]),
+                        
+                        # Ajout d'un indicateur de débogage
+                    ]
+                ),
+                
+                # Zone de visualisation
+                html.Div(
+                    className='countries-chart-container',
+                    children=[
+                        dcc.Graph(
+                            id='bar-chart',
+                            style={'height': '70vh'},
+                            config={'displayModeBar': True}
+                        ),
+                        html.Div(id='chart-info', className='chart-info')
+                    ]
                 )
-            ]),
-            
-            # Sélection du genre
-            html.Div(style={'margin-bottom': '20px'}, children=[
-                html.Label('Filtrer par genre:'),
-                dcc.Dropdown(
-                    id='genre-filter',
-                    options=[{'label': genre, 'value': genre} for genre in data_instance.get_data()['all_genres']],
-                    value=None,
-                    placeholder='Tous les genres'
-                )
-            ]),
-            
-            # Ajout d'un indicateur de débogage
-            html.Div(id='debug-info', style={'margin-top': '20px', 'font-size': '12px', 'color': '#666'})
-        ]),
-        
-        # Zone de visualisation
-        html.Div(style={
-            'flex': '1',
-            'min-width': '600px',
-            'background-color': 'white',
-            'border-radius': '5px',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
-            'padding': '20px'
-        }, children=[
-            dcc.Graph(
-                id='bar-chart',
-                style={'height': '70vh'},
-                config={'displayModeBar': True}
-            ),
-            html.Div(id='chart-info', style={'margin-top': '20px', 'text-align': 'center'})
+            ])
         ])
-    ])])
+    ])
 
 @callback(
     [Output('bar-chart', 'figure'),
-     Output('chart-info', 'children'),
-     Output('debug-info', 'children')],
+     Output('chart-info', 'children')],
     [Input('success-criteria', 'value'),
      Input('genre-filter', 'value')]
 )
@@ -116,6 +106,7 @@ def update_bar_chart(criteria, selected_genre):
         # Mettre à jour les données du genre
         genre_data = genre_top_countries['genre_successful_films'].tolist()
         ratio_data = [g/t*100 if t > 0 else 0 for g, t in zip(genre_data, successful_films)]
+        successful_films = [sf - gd for sf, gd in zip(successful_films, genre_data)]  # Mettre à jour le nombre total de films réussis
     
     # DataFrame pour le graphique
     chart_df = pd.DataFrame({
@@ -134,44 +125,69 @@ def update_bar_chart(criteria, selected_genre):
             x=['genre', 'total'],
             orientation='h',
             barmode='relative',
-            color_discrete_sequence=['#e74c3c', '#3498db'],  # Rouge pour genre, bleu pour total
+            color_discrete_sequence=['#efb11d', '#e43d12'],  # Rouge pour genre, bleu pour total
             labels={
                 'country': 'Pays',
                 'value': 'Nombre de Films',
-                'variable': 'Catégorie'
+                'variable': ''
             },
             title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
         )
 
         fig.data[0].name = selected_genre
-        fig.data[1].name = f'Autres films avec {criteria} > {threshold_text}'
+        fig.data[1].name = 'Total'
         
         # Ajouter des informations personnalisées pour le survol
         for i, trace in enumerate(fig.data):
             if i == 0:  # Trace du genre
                 trace.hovertemplate = '<b>%{y}</b><br>' + f'{selected_genre}: ' + '%{x}<br><extra></extra>'
+                trace.hoverlabel = dict(
+                    bgcolor="#ebe9e1",  # Couleur de fond
+                    font_size=14,     # Taille de la police
+                    font_family="system-ui",
+                    font_color="#efb11d",  # Couleur du texte
+                    bordercolor="#efb11d",  # Couleur de la bordure
+                )
             else:  # Trace du total
                 trace.hovertemplate = '<b>%{y}</b><br>Total: %{customdata}<br>Ratio: %{text}<extra></extra>'
                 trace.customdata = chart_df['total'].tolist()
                 trace.text = [f"{r:.1f}%" for r in chart_df['ratio'].tolist()]
+                trace.hoverlabel = dict(
+                    bgcolor="#ebe9e1",  # Couleur de fond
+                    font_size=14,     # Taille de la police
+                    font_family="system-ui",
+                    font_color="#e43d12",  # Couleur du texte
+                    bordercolor="#e43d12",  # Couleur de la bordure
+                )
     else:
         fig = px.bar(
             chart_df,
             y='country',
             x='total',
             orientation='h',
-            color_discrete_sequence=['#3498db'],  # Bleu pour total
+            color_discrete_sequence=['#e43d12'],  # Bleu pour total
             labels={
                 'country': 'Pays',
                 'total': 'Nombre de Films'
             },
-            title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
         )
         
         fig.data[0].name = f'Films avec {criteria} > {threshold_text}' # Modifier la légende
         fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>' # Ajouter des informations personnalisées pour le survol
-    
+        fig.data[0].hoverlabel = dict(
+            bgcolor="#ebe9e1",  # Couleur de fond
+            font_size=14,     # Taille de la police
+            font_family="system-ui",
+            font_color="#e43d12",  # Couleur du texte
+            bordercolor="#e43d12",  # Couleur de la bordure
+        )
     fig.update_layout(
+        title ={
+            'text': f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}",
+            'font': {
+                'color': '#e43d12',
+            },
+        },
         xaxis_title="Nombre de Films",
         yaxis_title="Pays",
         legend=dict(
@@ -199,7 +215,7 @@ def update_bar_chart(criteria, selected_genre):
     # Information de débogage
     debug_text = f"Données agrégées: {len(agg_df)} pays, max={agg_df['successful_films'].max()} films dépassant le seuil"
     
-    return fig, info_text, debug_text
+    return fig, info_text
 
 def get_countries_chart_text():
     return html.Div(
