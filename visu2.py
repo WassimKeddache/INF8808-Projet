@@ -4,6 +4,7 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.express as px
 import json
+import itertools
 
 # Initialisation
 app = dash.Dash(__name__)
@@ -27,19 +28,18 @@ df['release_year'] = df['release_date'].dt.year
 
 # Nettoyage global de base
 df = df.dropna(subset=['budget', 'revenue', 'popularity', 'vote_count', 'vote_average', 'runtime'])
-df = df[(df['budget'] > 0) & (df['revenue'] > 0) & (df['runtime'] > 0)]
+df = df[(df['budget'] > 0) & (df['revenue'] > 0)]
 
-# Définir les paires personnalisées
-factor_pairs = [
-    ('budget', 'vote_average'),
-    ('budget', 'popularity'),
-    ('vote_average', 'popularity'),
-    ('vote_average', 'revenue'),
-    ('popularity', 'revenue'),
-    ('runtime', 'revenue'),
-    ('runtime', 'popularity'),
-    ('runtime', 'vote_average'),
-]
+# Définir les paires personnalisées (sans runtime)
+# factor_pairs = [
+#     ('budget', 'revenue'),
+#     ('budget', 'popularity'),
+#     ('budget', 'vote_average'),
+#     ('revenue', 'popularity'),
+#     ('revenue', 'vote_average'),
+#     ('popularity', 'vote_average'),
+# ]
+
 
 # Map des labels
 factor_label_map = {
@@ -47,8 +47,23 @@ factor_label_map = {
     'revenue': 'Revenu (USD)',
     'popularity': 'Popularité',
     'vote_average': 'Note moyenne',
-    'runtime': 'Durée (minutes)'
+    'runtime' : 'Duration (min)'
 }
+
+
+factor_pairs = list(itertools.combinations(factor_label_map.keys(), 2))
+
+# Créer une matrice de comparaison pairwise
+def generate_comparison_matrix():
+    variables = list(factor_label_map.keys())
+    matrix = pd.DataFrame('', index=variables, columns=variables)
+    for x, y in factor_pairs:
+        i, j = variables.index(x), variables.index(y)
+        if i > j:
+            matrix.iloc[i, j] = 'x'
+        elif j > i:
+            matrix.iloc[j, i] = 'x'
+    return matrix
 
 # Layout
 app.layout = html.Div(style={
@@ -66,52 +81,69 @@ app.layout = html.Div(style={
 
     html.Div(style={
         'flex': 1,
-        'overflowY': 'scroll'
+        'overflowY': 'scroll',
+        'padding': '20px'
     }, children=[
         html.Div(
-            id='scatter-plots-container',
-            style={
-                'display': 'flex',
-                'flexWrap': 'wrap',
-                'gap': '20px',
-                'padding': '20px',
-                'justifyContent': 'flex-start',
-                'alignItems': 'flex-start'
-            }
+            id='scatter-plots-container'
         )
     ])
 ])
-
-# Callback
 @app.callback(
     Output('scatter-plots-container', 'children'),
     [Input('dummy', 'children')]
 )
 def update_scatter_plots(_):
     scatter_plots = []
+    
+    
+    # Création d'un bloc d'interprétation en haut, sur toute la largeur
+    interpretation_block = html.Div(
+        style={
+            'width': '100%',
+            'border': '1px solid #ccc',
+            'padding': '20px',
+            'boxSizing': 'border-box',
+            'marginBottom': '20px'
+        },
+        children=[
+            html.H4("Interprétations"),
+            html.P("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor "
+                   "incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud "
+                   "exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
+        ]
+    )
 
     for x, y in factor_pairs:
         x_label = factor_label_map[x]
         y_label = factor_label_map[y]
 
-        # Construire le sous-ensemble de données sans doublons
-        columns_needed = list({x, y, 'title', 'release_year', 'vote_average', 'budget', 'revenue'})
+        columns_needed = list({x, y, 'title', 'release_year', 'vote_average', 'budget', 'revenue', 'runtime'})
         subset = df[columns_needed].dropna()
 
-        # Filtrer les valeurs non-positives si on utilise un axe log
         if x in ['budget', 'revenue']:
             subset = subset[subset[x] > 0]
         if y in ['budget', 'revenue']:
             subset = subset[subset[y] > 0]
 
+        # Sous-échantillonnage
+        subset = subset.iloc[::4]
+
         if subset.empty:
-            # Fallback si aucune donnée valide
-            scatter_plots.append(html.Div(
-                style={'width': '400px', 'height': '500px', 'border': '1px dashed gray', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center'},
-                children=[html.P(f"Aucune donnée pour : {x_label} vs {y_label}")]
-            ))
+            scatter_plots.append(
+                html.Div(
+                    style={'width': '400px', 'height': '400px', 'border': '1px dashed gray',
+                           'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center'},
+                    children=[html.P(f"Aucune donnée pour : {x_label} vs {y_label}")]
+                )
+            )
             continue
 
+        # Calcul du coefficient de corrélation
+        # Ici, on utilise la méthode .corr() de pandas
+        correlation = subset[x].corr(subset[y])
+        
+        # Création du graphique
         fig = px.scatter(
             subset,
             x=x,
@@ -125,8 +157,8 @@ def update_scatter_plots(_):
         fig.update_layout(
             xaxis_title=x_label,
             yaxis_title=y_label,
-            height=500,
-            width=400,
+            autosize=True,
+            height=400,
             margin=dict(l=40, r=20, t=50, b=40),
         )
 
@@ -135,12 +167,60 @@ def update_scatter_plots(_):
         if y in ['budget', 'revenue']:
             fig.update_yaxes(type='log')
 
-        scatter_plots.append(html.Div(
-            style={'display': 'inline-block'},
-            children=[dcc.Graph(figure=fig)]
-        ))
+        # Composant graphique avec affichage du coefficient en dessous
+        graph_block = html.Div(
+            style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'},
+            children=[
+                dcc.Graph(
+                    figure=fig,
+                    config={'responsive': True},
+                    style={'width': '100%', 'maxWidth': '400px', 'height': '400px'}
+                ),
+                html.Div(
+                    style={'marginTop': '10px'},
+                    children=[
+                        html.P(f"Facteur de corrélation : {correlation:.2f}",
+                               style={'fontWeight': 'bold', 'textAlign': 'center'})
+                    ]
+                )
+            ]
+        )
 
-    return scatter_plots
+        scatter_plots.append(graph_block)
+
+    # Arrange plots in rows as before: 4, 3, 2, 1 plots per row
+    rows = [4, 3, 2, 1]
+    base_num_cols = rows[0]  # This will be 4, so the first row is "full" at 100%
+
+    layout = []
+    index = 0
+    for num_cols in rows:
+        # Grab the scatter plots that belong to this row
+        row_children = scatter_plots[index : index + num_cols]
+        index += num_cols
+
+        # Compute the row width as a fraction of the first row’s width
+        row_width = f"{(num_cols / base_num_cols) * 100}%"
+        
+        # Use CSS grid to place the given number of columns in this row
+        row_style = {
+            'display': 'grid',
+            'gridTemplateColumns': f'repeat({num_cols}, 1fr)',
+            'gridGap': '20px',
+            'width': row_width,
+            'marginLeft': '0',
+            'marginRight': '0',
+            'marginBottom': '20px'
+        }
+
+        
+        
+
+        layout.append(html.Div(style=row_style, children=row_children))
+
+    final_layout = [interpretation_block] + layout
+    return final_layout
+
 
 # Démarrage
 if __name__ == '__main__':
