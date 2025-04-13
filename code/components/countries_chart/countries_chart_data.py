@@ -108,7 +108,6 @@ class CountriesChartData:
         try:
             countries_json = countries_json.replace('""', '"')
             countries_list = json.loads(countries_json)
-            # Filtrer les codes None
             return [translated_countries.get(country['name'], country['name']) for country in countries_list]
         except Exception as e:
             return []
@@ -118,7 +117,6 @@ class CountriesChartData:
             genres_json = genres_json.replace('""', '"')
             genres_list = json.loads(genres_json)
             genres = [genre['name'] for genre in genres_list]
-            # Appliquer la traduction
             return [genre_translations.get(genre, genre) for genre in genres]
         except Exception as e:
             return []

@@ -131,7 +131,7 @@ def update_bar_chart(criteria, selected_genre):
                 'value': 'Nombre de Films',
                 'variable': ''
             },
-            title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
+            title=f"Top 10 Pays par Nombre de Films avec{'un Revenue' if criteria == 'revenue' else 'une Note'} > {threshold_text}"
         )
 
         fig.data[0].name = selected_genre
@@ -183,7 +183,7 @@ def update_bar_chart(criteria, selected_genre):
         )
     fig.update_layout(
         title ={
-            'text': f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}",
+            'text': f"Top 10 Pays par Nombre de Films avec {'un Revenue' if criteria == 'revenue' else 'une Note'} > {threshold_text}",
             'font': {
                 'color': '#e43d12',
             },

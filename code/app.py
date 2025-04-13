@@ -48,7 +48,7 @@ app.layout = html.Div(
             ]
         ),
         html.Footer(
-            className='main-footer',
+            className='main-header',
             children=[
                 html.P("© ...")
             ]
