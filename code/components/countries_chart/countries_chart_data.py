@@ -125,8 +125,6 @@ class CountriesChartData:
             
     def preprocess_data(self, df):
         df['countries'] = df['production_countries'].apply(self.extract_countries)
-        print(df['countries'])
-        print(set([country[0] for country in df['countries'] if len(country) > 0]))
         df['genres_list'] = df['genres'].apply(self.extract_genres)
 
         # Conversion des dates et création de la colonne décennie
