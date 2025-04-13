@@ -20,8 +20,8 @@ import plotly.graph_objects as go
 
 from components.description import get_description
 from components.header import get_header
-from components.heatmap_budget.heatmap_budget import get_heatmap_budget, get_heatmap_budget_text
-from components.countries_chart.countries_chart import get_countries_chart, get_countries_chart_text
+from components.heatmap_budget.heatmap_budget import get_heatmap_budget
+from components.countries_chart.countries_chart import get_countries_chart
 
 #import preprocess as preproc
 header = get_header()
@@ -43,10 +43,7 @@ app.layout = html.Div(
             className='main-content',
             children=[
                 get_description(),
-                get_heatmap_budget_text(),
                 get_heatmap_budget(),
-                html.Div(style={'height': '100px'}),
-                get_countries_chart_text(),
                 get_countries_chart()
             ]
         ),

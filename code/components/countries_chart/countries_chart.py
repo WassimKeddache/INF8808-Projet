@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 from .countries_chart_data import data_instance
 
-def get_countries_chart():
+def get_chart():
     return html.Div(className='content', children=[
         # Conteneur principal
         html.Div(className='dashboard-card', children=[
@@ -217,27 +217,32 @@ def update_bar_chart(criteria, selected_genre):
     
     return fig, info_text
 
-def get_countries_chart_text():
+def get_countries_chart():
     return html.Div(
         className='text',
         children=[
             html.H1(
-                "PAYS",
+                "ORIGINE ET SUCCÈS",
                 className='text-title'
             ),
             html.P(
                 """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
-                Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, 
-                nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula. 
-                Donec lobortis risus a elit. Etiam tempor. Ut ullamcorper, ligula eu tempor congue, eros est euismod turpis, 
-                id tincidunt sapien risus a quam. Maecenas fermentum consequat mi. Donec fermentum. Pellentesque malesuada nulla a mi. 
-                Duis sapien sem, aliquet nec, commodo eget, consequat quis, neque.
+                Cette visualisation présente un diagramme à barres horizontales permettant d'analyser le nombre de films par pays répondant à deux critères : 
+                un revenu minimum de 10 millions et une note minimum de 7. L'utilisateur peut également filtrer par genre pour observer la répartition des films par pays 
+                en fonction de leur genre spécifique. Le total des genres n'est pas complémentaire, car plusieurs films peuvent avoir plusieurs genres.
                 """,
                 className='text-paragraph'
             ),
-        ],
+            get_chart(),
+            html.P(
+                """
+                Cette visualisation permet de mettre en évidence l'impact potentiel de l'origine d'un film sur son succès. 
+                En effet, la grande majorité des films répondant aux critères sont américains, ce qui souligne la domination des États-Unis dans l'industrie cinématographique. 
+                Viennent ensuite les films britanniques et allemands. Une observation intéressante est que les films américains qui respectent ces critères sont majoritairement des comédies, 
+                avec un nombre nettement plus élevé de films de comédie générant des revenus supérieurs à 10 millions par rapport aux films d'action, même lorsque l'on prend en compte la note. 
+                Cela suggère que le genre d'un film, ainsi que son pays d'origine, peuvent avoir une influence considérable sur son succès.
+                """,
+                className='text-paragraph'
+            ),
+        ]
     )

@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 from .heatmap_budget_data import data_instance
 
-def get_heatmap_budget():
+def get_chart():
     return html.Div(className='content', children=[
         html.Div(className='dashboard-card', children=[
             # Main content
@@ -304,7 +304,7 @@ def update_hover_info(budget_hover, metric_hover, selected_metric):
     
     return [hover_info]
 
-def get_heatmap_budget_text():
+def get_heatmap_budget():
     return html.Div(
         className='text',
         children=[
@@ -314,15 +314,20 @@ def get_heatmap_budget_text():
             ),
             html.P(
                 """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
-                Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, 
-                nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula. 
-                Donec lobortis risus a elit. Etiam tempor. Ut ullamcorper, ligula eu tempor congue, eros est euismod turpis, 
-                id tincidunt sapien risus a quam. Maecenas fermentum consequat mi. Donec fermentum. Pellentesque malesuada nulla a mi. 
-                Duis sapien sem, aliquet nec, commodo eget, consequat quis, neque.
+                On cherche à comprendre si le genre d’un film ainsi que son budget jouent un rôle central dans son succès. 
+                Cette visualisation explore leur évolution dans le temps et leur lien avec les performances critiques et financières.
+                """,
+                className='text-paragraph'
+            ),
+            get_chart(),
+            html.P(
+                """
+                On observe une tendance générale à allouer des budgets plus importants aux films au fil des décennies. 
+                Les genres comme l’aventure, l’action, la famille, la science-fiction et le fantastique bénéficient d’une croissance marquée de leur budget, 
+                accompagnée d’une évolution positive de leurs revenus moyens, ce qui suggère un lien entre investissement financier et succès commercial. 
+                Toutefois, certains films réussissent à générer des revenus élevés malgré un budget réduit, notamment dans les genres horreur (1973, 1975), 
+                thriller (1975), famille (1982), et animation (1992, 1994, 1995). En revanche, les votes moyens restent relativement stables à travers les genres et les années, 
+                indiquant une appréciation critique plus uniforme.
                 """,
                 className='text-paragraph'
             ),
