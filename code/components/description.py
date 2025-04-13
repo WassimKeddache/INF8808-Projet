@@ -5,20 +5,17 @@ def get_description():
         className='text',
         children=[
             html.H1(
-                "DÉFINITION DU SUCCÈS",
+                "DÉFINIR LE SUCCÈS",
                 className='text-title'
             ),
             html.P(
                 """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
-                Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, 
-                nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula. 
-                Donec lobortis risus a elit. Etiam tempor. Ut ullamcorper, ligula eu tempor congue, eros est euismod turpis, 
-                id tincidunt sapien risus a quam. Maecenas fermentum consequat mi. Donec fermentum. Pellentesque malesuada nulla a mi. 
-                Duis sapien sem, aliquet nec, commodo eget, consequat quis, neque.
+                Dans le cadre de ce projet, nous cherchons à déterminer les facteurs qui influencent le succès 
+                d’un film en nous basant sur une base de données issue d'IMDb. Nous définissons le succès selon 
+                deux dimensions complémentaires : d’une part, la performance financière mesurée par le revenu 
+                net du film, et d’autre part, la réception critique représentée par la note moyenne attribuée 
+                par les spectateurs. Cette double définition nous permet d’analyser à la fois l’impact commercial
+                et l’appréciation du public, offrant ainsi une vision plus complète du succès cinématographique. L’objectif est d’évaluer dans quelle mesure certains éléments — tels que le budget, le genre, le pays de production, le réalisateur, les acteurs principaux ou encore le studio — peuvent être prédictifs du succès selon ces deux axes.
                 """,
                 className='text-paragraph'
             ),
