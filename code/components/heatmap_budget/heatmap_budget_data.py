@@ -24,7 +24,6 @@ genre_translations = {
     'Western': 'Western'
 }
 
-
 class HeatmapBudgetData:
     def __init__(self):
         df = pd.read_csv("../data/combined.csv")
@@ -70,7 +69,6 @@ class HeatmapBudgetData:
         # Calculer les moyennes par genre et année pour tout le dataset
         all_budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
         all_revenue_avg = df_exploded.groupby(['genre', 'release_date'])['revenue'].mean().reset_index()
-        all_vote_avg = df_exploded.groupby(['genre', 'release_date'])['vote_average'].mean().reset_index()
 
         # Calculer les valeurs min et max des MOYENNES pour chaque métrique
         budget_min_avg = all_budget_avg['budget'].min()

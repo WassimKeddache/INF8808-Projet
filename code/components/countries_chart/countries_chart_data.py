@@ -2,33 +2,114 @@ import pandas as pd
 import json
 import pycountry
 
+genre_translations = {
+    'Action': 'Action',
+    'Adventure': 'Aventure',
+    'Animation': 'Animation',
+    'Comedy': 'Comédie',
+    'Crime': 'Crime',
+    'Documentary': 'Documentaire',
+    'Drama': 'Drame',
+    'Family': 'Famille',
+    'Fantasy': 'Fantastique',
+    'Foreign': 'Étranger',
+    'History': 'Historique',
+    'Horror': 'Horreur',
+    'Music': 'Musique',
+    'Mystery': 'Mystère',
+    'Romance': 'Romance',
+    'Science Fiction': 'Science-fiction',
+    'TV Movie': 'Téléfilm',
+    'Thriller': 'Thriller',
+    'War': 'Guerre',
+    'Western': 'Western'
+}
+
+translated_countries = {
+    'Afghanistan': 'Afghanistan',
+    'Algeria': 'Algérie',
+    'Argentina': 'Argentine',
+    'Aruba': 'Aruba',
+    'Australia': 'Australie',
+    'Austria': 'Autriche',
+    'Bahamas': 'Bahamas',
+    'Belgium': 'Belgique',
+    'Bhutan': 'Bhoutan',
+    'Bolivia': 'Bolivie',
+    'Bosnia and Herzegovina': 'Bosnie-Herzégovine',
+    'Brazil': 'Brésil',
+    'Bulgaria': 'Bulgarie',
+    'Canada': 'Canada',
+    'Cameroon': 'Cameroun',
+    'China': 'Chine',
+    'Cyprus': 'Chypre',
+    'Czech Republic': 'République tchèque',
+    'Denmark': 'Danemark',
+    'Dominican Republic': 'République dominicaine',
+    'Ecuador': 'Équateur',
+    'Finland': 'Finlande',
+    'France': 'France',
+    'Germany': 'Allemagne',
+    'Greece': 'Grèce',
+    'Guadaloupe': 'Guadeloupe',
+    'Guyana': 'Guyana',
+    'Hong Kong': 'Hong Kong',
+    'Hungary': 'Hongrie',
+    'Iceland': 'Islande',
+    'India': 'Inde',
+    'Indonesia': 'Indonésie',
+    'Iran': 'Iran',
+    'Ireland': 'Irlande',
+    'Israel': 'Israël',
+    'Italy': 'Italie',
+    'Jamaica': 'Jamaïque',
+    'Japan': 'Japon',
+    'Kenya': 'Kenya',
+    'Kyrgyz Republic': 'Kirghizistan',
+    'Lebanon': 'Liban',
+    'Libyan Arab Jamahiriya': 'Libye',
+    'Luxembourg': 'Luxembourg',
+    'Malaysia': 'Malaisie',
+    'Malta': 'Malte',
+    'Mexico': 'Mexique',
+    'Morocco': 'Maroc',
+    'Netherlands': 'Pays-Bas',
+    'New Zealand': 'Nouvelle-Zélande',
+    'Norway': 'Norvège',
+    'Pakistan': 'Pakistan',
+    'Panama': 'Panama',
+    'Peru': 'Pérou',
+    'Philippines': 'Philippines',
+    'Poland': 'Pologne',
+    'Romania': 'Roumanie',
+    'Russia': 'Russie',
+    'Singapore': 'Singapour',
+    'Slovenia': 'Slovénie',
+    'South Africa': 'Afrique du Sud',
+    'South Korea': 'Corée du Sud',
+    'Spain': 'Espagne',
+    'Sweden': 'Suède',
+    'Switzerland': 'Suisse',
+    'Thailand': 'Thaïlande',
+    'Turkey': 'Turquie',
+    'United Arab Emirates': 'Émirats arabes unis',
+    'United Kingdom': 'Royaume-Uni',
+    'United States of America': 'États-Unis',
+}
+
+
 class CountriesChartData:
     def __init__(self):
         df = pd.read_csv("../data/combined.csv")
         self.preprocess_data(df)
-
-# Fonction pour convertir ISO-2 en ISO-3
-    def convert_iso2_to_iso3(self, iso2_code):
-        try:
-            if pd.isna(iso2_code) or iso2_code == '':
-                return None
-            country = pycountry.countries.get(alpha_2=iso2_code)
-            if country:
-                return country.alpha_3
-            return None
-        except Exception as e:
-            return None
 
     # Prétraitement des données
     def extract_countries(self, countries_json):
         try:
             countries_json = countries_json.replace('""', '"')
             countries_list = json.loads(countries_json)
-            # Extraire les codes ISO-2 et les convertir en ISO-3
-            iso2_codes = [country['iso_3166_1'] for country in countries_list]
-            iso3_codes = [self.convert_iso2_to_iso3(code) for code in iso2_codes]
             # Filtrer les codes None
-            return [code for code in iso3_codes if code]
+            return [translated_countries.get(country['name'], country['name']) for country in countries_list]
         except Exception as e:
             return []
 
@@ -36,12 +117,16 @@ class CountriesChartData:
         try:
             genres_json = genres_json.replace('""', '"')
             genres_list = json.loads(genres_json)
-            return [genre['name'] for genre in genres_list]
+            genres = [genre['name'] for genre in genres_list]
+            # Appliquer la traduction
+            return [genre_translations.get(genre, genre) for genre in genres]
         except Exception as e:
             return []
-        
+            
     def preprocess_data(self, df):
         df['countries'] = df['production_countries'].apply(self.extract_countries)
+        print(df['countries'])
+        print(set([country[0] for country in df['countries'] if len(country) > 0]))
         df['genres_list'] = df['genres'].apply(self.extract_genres)
 
         # Conversion des dates et création de la colonne décennie
