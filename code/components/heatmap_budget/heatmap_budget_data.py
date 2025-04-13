@@ -21,6 +21,7 @@ class HeatmapBudgetData:
             # Analyser le JSON
             genres_list = json.loads(genres_json)
             # Extraire les noms des genres
+
             return [genre['name'] for genre in genres_list]
         except Exception as e:
             print(f"Erreur lors de l'extraction des genres: {e}")

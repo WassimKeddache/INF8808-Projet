@@ -30,7 +30,19 @@ def get_chart():
                         className='heatmap-graph'
                     )
                 ]),
-                
+                html.Div(
+                    className='heatmap-legend',
+                    children=[
+                        html.Div(style={
+                            'width': '15px',
+                            'height': '15px',
+                            'backgroundColor': '#f2f2f2',  # gris clair
+                            'marginRight': '6px',
+                            'border': '1px solid #aaa'
+                        }),
+                        html.Span("= Aucune donnée")
+                    ]
+                ),
                 # Rangée avec le choix de métrique à gauche et hover info centré
                 html.Div(className='controls-and-info-row', children=[
                     # Choix de métrique à gauche
@@ -57,7 +69,6 @@ def get_chart():
         dcc.Store(id='heatmap-data-store')
     ])
 
-# Callback pour mettre à jour les deux heatmaps en fonction du sélecteur de métrique
 @callback(
     [Output('budget-heatmap', 'figure'),
      Output('metric-heatmap', 'figure')],
@@ -87,17 +98,36 @@ def update_heatmaps(selected_metric):
     # Définir l'ordre des genres (identique pour les deux heatmaps)
     genre_order = all_genre_names
     
+    # Créer des masques pour les valeurs nulles (0)
+    budget_mask = np.array(budget_df['budget']) == 0
+    metric_mask = np.array(metric_df[selected_metric]) == 0
+    
+    # Utiliser un gris plus clair pour les valeurs nulles
+    light_gray = "#f2f2f2"  # Gris clair
+    
     # Créer la heatmap pour le budget
-    budget_fig = go.Figure(data=go.Heatmap(
-        z=budget_df['budget'],
+    budget_fig = go.Figure()
+    
+    # Ajouter d'abord les cellules nulles en gris clair (en dessous)
+    budget_fig.add_trace(go.Heatmap(
+        z=np.where(budget_mask, 1, np.nan),  # 1 pour les 0, NaN pour le reste
+        x=budget_df['release_date'],
+        y=budget_df['genre'],
+        colorscale=[[0, light_gray], [1, light_gray]],  # Gris clair uniforme
+        showscale=False,
+        hoverinfo='skip'  # Ignorer complètement le hover pour cette couche
+    ))
+    
+    # Ajouter ensuite les cellules non-nulles avec l'échelle de couleur normale (au-dessus)
+    budget_fig.add_trace(go.Heatmap(
+        z=np.where(budget_mask, np.nan, budget_df['budget']),  # Remplacer les 0 par NaN
         x=budget_df['release_date'],
         y=budget_df['genre'],
         colorscale = [
-            [0.0, "#ffffff"],   # blanc
-            [0.2, "#f9c6b5"],   # rose très clair
-            [0.4, "#f39271"],   # orange clair
-            [0.6, "#ec6842"],   # orange foncé
-            [0.8, "#e43d12"],   # rouge-orangé intense
+            [0.0, "#f9c6b5"],   # rose très clair
+            [0.2, "#f39271"],   # orange clair
+            [0.4, "#ec6842"],   # orange foncé
+            [0.6, "#e43d12"],   # rouge-orangé intense
             [1.0, "#a0210c"],   # rouge brun très foncé
         ],
         zmin=budget_min_avg,
@@ -108,8 +138,14 @@ def update_heatmaps(selected_metric):
             budget_df['budget'],
             metric_df[selected_metric]
         ), axis=-1),
-        hoverinfo='none',  # Désactiver l'info-bulle par défaut
-        hovertemplate=None
+        hovertemplate='<b>%{customdata[0]}</b><br>Année: %{customdata[1]}<br>Budget: $%{customdata[2]:,.0f}<extra></extra>',
+        hoverlabel=dict(
+            bgcolor="#ebe9e1",  # Couleur de fond
+            font_size=14,     # Taille de la police
+            font_family="system-ui",
+            font_color='#e43d12',  # Couleur du texte
+            bordercolor='#e43d12',  # Couleur de la bordure
+        )
     ))
     
     # Modification pour s'assurer que tous les genres sont affichés
@@ -142,6 +178,11 @@ def update_heatmaps(selected_metric):
             title='Budget moyen (USD)'
         ),
         margin=dict(l=150, r=50, t=80, b=100),  # Augmenter la marge gauche pour les labels
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+            font_family="Arial"
+        )
     )
     
     # Créer la heatmap pour la métrique sélectionnée
@@ -153,25 +194,39 @@ def update_heatmaps(selected_metric):
     # Utiliser les échelles de couleur standard
     color_scales = {
         'revenue': [
-            [0.0, "#ffffff"],   # blanc
-            [0.2, "#fbe8c2"],   # crème très clair
-            [0.4, "#f6d27c"],   # jaune pâle
-            [0.6, "#f1be3e"],   # jaune foncé
-            [0.8, "#efb11d"],   # jaune orangé intense
+            [0.0, "#fbe8c2"],   # crème très clair
+            [0.2, "#f6d27c"],   # jaune pâle
+            [0.4, "#f1be3e"],   # jaune foncé
+            [0.6, "#efb11d"],   # jaune orangé intense
             [1.0, "#a87410"],   # brun doré foncé
         ],
         'vote_average': [
-            [0.0, "#ffffff"],   # blanc
-            [0.2, "#ffe6ec"],   # rose très clair
-            [0.4, "#ffc7d3"],   # rose pastel
-            [0.6, "#ffa2b6"],   # rose saumon intense
-            [0.8, "#e17b93"],   # rose framboise
+            [0.0, "#ffe6ec"],   # rose très clair
+            [0.2, "#ffc7d3"],   # rose pastel
+            [0.4, "#ffa2b6"],   # rose saumon intense
+            [0.6, "#e17b93"],   # rose framboise
             [1.0, "#b5536a"],   # vieux rose foncé
         ]
     }
     
-    metric_fig = go.Figure(data=go.Heatmap(
-        z=metric_df[selected_metric],
+    # Créer la figure pour la métrique
+    metric_fig = go.Figure()
+    
+    # Ajouter d'abord les cellules nulles en gris clair (en dessous)
+    metric_fig.add_trace(go.Heatmap(
+        z=np.where(metric_mask, 1, np.nan),  # 1 pour les 0, NaN pour le reste
+        x=metric_df['release_date'],
+        y=metric_df['genre'],
+        colorscale=[[0, light_gray], [1, light_gray]],  # Gris clair uniforme
+        showscale=False,
+        hoverinfo='skip'  # Ignorer complètement le hover pour cette couche
+    ))
+    
+    # Ajouter ensuite les cellules non-nulles avec l'échelle de couleur normale (au-dessus)
+    title_color = '#efb11d' if selected_metric == 'revenue' else '#b5536a'
+
+    metric_fig.add_trace(go.Heatmap(
+        z=np.where(metric_mask, np.nan, metric_df[selected_metric]),  # Remplacer les 0 par NaN
         x=metric_df['release_date'],
         y=metric_df['genre'],
         colorscale=color_scales[selected_metric],
@@ -183,16 +238,22 @@ def update_heatmaps(selected_metric):
             budget_df['budget'],
             metric_df[selected_metric]
         ), axis=-1),
-        hoverinfo='none',  # Désactiver l'info-bulle par défaut
-        hovertemplate=None
+        hovertemplate='<b>%{customdata[0]}</b><br>Année: %{customdata[1]}<br>' + 
+                      (f'Vote: %{{customdata[3]:.2f}}' if selected_metric == 'vote_average' else f'Revenu: $%{{customdata[3]:,.0f}}') + 
+                      '<extra></extra>',
+        hoverlabel=dict(
+            bgcolor="#ebe9e1",  # Couleur de fond
+            font_size=14,     # Taille de la police
+            font_family="system-ui",
+            font_color=title_color,  # Couleur du texte
+            bordercolor=title_color,  # Couleur de la bordure
+        )
     ))
     
     # D6536D e43d12
-    title_color = '#efb11d' if selected_metric == 'revenue' else '#b5536a'
     
     metric_fig.update_layout(
-        title=
-        {
+        title={
             'text': f'{metric_labels[selected_metric]} par genre (depuis 1970, par année)',
             'font': {
                 'color': title_color,
@@ -216,7 +277,12 @@ def update_heatmaps(selected_metric):
         coloraxis_colorbar=dict(
             title=metric_labels[selected_metric]
         ),
-        margin=dict(l=0, r=50, t=80, b=100)
+        margin=dict(l=0, r=50, t=80, b=100),
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+            font_family="Arial"
+        )
     )
     
     return budget_fig, metric_fig

@@ -194,6 +194,17 @@ body {
     margin-right: auto;
 }
 
+.heatmap-legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-style: italic;
+    color: #666;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
 .control-label {
     font-weight: 500;
     margin-bottom: 6px;
