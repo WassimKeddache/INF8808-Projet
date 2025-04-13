@@ -1,6 +1,30 @@
 import json
 import pandas as pd
 
+genre_translations = {
+    'Action': 'Action',
+    'Adventure': 'Aventure',
+    'Animation': 'Animation',
+    'Comedy': 'Comédie',
+    'Crime': 'Crime',
+    'Documentary': 'Documentaire',
+    'Drama': 'Drame',
+    'Family': 'Famille',
+    'Fantasy': 'Fantastique',
+    'Foreign': 'Étranger',
+    'History': 'Historique',
+    'Horror': 'Horreur',
+    'Music': 'Musique',
+    'Mystery': 'Mystère',
+    'Romance': 'Romance',
+    'Science Fiction': 'Science-fiction',
+    'TV Movie': 'Téléfilm',
+    'Thriller': 'Thriller',
+    'War': 'Guerre',
+    'Western': 'Western'
+}
+
+
 class HeatmapBudgetData:
     def __init__(self):
         df = pd.read_csv("../data/combined.csv")
@@ -38,6 +62,10 @@ class HeatmapBudgetData:
 
         # Mis à jour des noms de genre
         all_genre_names = sorted(df_exploded['genre'].unique())  # Trier les genres par ordre alphabétique
+        
+        # Appliquer la traduction
+        df_exploded['genre'] = df_exploded['genre'].map(genre_translations)
+        all_genre_names = sorted(df_exploded['genre'].dropna().unique())  # Mise à jour avec les noms traduits
 
         # Calculer les moyennes par genre et année pour tout le dataset
         all_budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
