@@ -26,8 +26,8 @@ app.layout = html.Div(
             className='main-content',
             children=[
                 get_description(),
-                get_entities_chart(),
                 get_matrix_diagram(),
+                get_entities_chart(),
                 get_heatmap_budget(),
                 get_countries_chart(),
             ]
