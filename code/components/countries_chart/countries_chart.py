@@ -139,7 +139,7 @@ def update_bar_chart(criteria, selected_genre):
             if i == 0:  # Trace du genre
                 trace.hovertemplate = '<b>%{y}</b><br>' + f'{selected_genre}: ' + '%{x}<br><extra></extra>'
                 trace.hoverlabel = dict(
-                    bgcolor="#ebe9e1",  # Couleur de fond
+                    bgcolor="#ECE9E1",  # Couleur de fond
                     font_size=14,     # Taille de la police
                     font_family="system-ui",
                     font_color="#efb11d",  # Couleur du texte
@@ -150,7 +150,7 @@ def update_bar_chart(criteria, selected_genre):
                 trace.customdata = chart_df['total'].tolist()
                 trace.text = [f"{r:.1f}%" for r in chart_df['ratio'].tolist()]
                 trace.hoverlabel = dict(
-                    bgcolor="#ebe9e1",  # Couleur de fond
+                    bgcolor="#ECE9E1",  # Couleur de fond
                     font_size=14,     # Taille de la police
                     font_family="system-ui",
                     font_color="#e43d12",  # Couleur du texte
@@ -172,7 +172,7 @@ def update_bar_chart(criteria, selected_genre):
         fig.data[0].name = f'Films avec {criteria} > {threshold_text}' # Modifier la légende
         fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>' # Ajouter des informations personnalisées pour le survol
         fig.data[0].hoverlabel = dict(
-            bgcolor="#ebe9e1",  # Couleur de fond
+            bgcolor="#ECE9E1",  # Couleur de fond
             font_size=14,     # Taille de la police
             font_family="system-ui",
             font_color="#e43d12",  # Couleur du texte

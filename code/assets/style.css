@@ -8,14 +8,7 @@
 
     --secondary-color: #efb11d;
 
-    --background-color: #ebe9e1;
-
-    /* TODO GET RID OF THIS */
-    --card-background: #ffffff;
-    --border-color: #e9ecef;
-    --hover-color: #f1f3f5;
-    --text-color: #343a40;
-    --text-light: #6c757d;
+    --background-color: #ECE9E1;
 }
 
 html,
@@ -332,6 +325,25 @@ body {
     font-size: 1rem;
     font-weight: 400;
 }
+
+.group-graph-wrapper {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    /* Centre le container */
+    width: 100%;
+}
+
+.group-graph-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    /* Aligne les graphes à gauche */
+    gap: 20px;
+    max-width: 80%;
+    /* ou la largeur que tu veux pour limiter la ligne */
+}
+
 
 /* Responsive design - GARDER les heatmaps côte à côte */
 @media (max-width: 768px) {

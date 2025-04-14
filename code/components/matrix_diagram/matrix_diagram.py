@@ -105,46 +105,63 @@ def create_scatter(x_var, y_var):
 # Group Interpretations and Graphs
 # ============================================================
 
-group1_header = html.H4("1 - Groupe des indicateurs de succès financiers et d’audience : Budget, Revenue et Popularité", className="countries-card-label", style={'textAlign': 'center'}  )
+group1_header = html.H4("Groupe des indicateurs de succès financiers et d’audience : Budget, Revenue et Popularité", className="countries-card-label", style={'textAlign': 'center'}  )
 group1_description = html.P(
     "Les données montrent une chose très claire : plus un film a un budget élevé, plus il a de chances de générer des revenus importants. La corrélation entre le budget et le revenu est forte (0.71). Mais l’argent ne fait pas tout. La popularité — un indicateur de visibilité ou d'engouement du public — est elle aussi bien corrélée au revenu (0.6) et au budget (0.43). Conclusion : un gros budget combiné à un bon niveau de buzz semble être un duo gagnant pour atteindre le succès commercial.",
     className='text-paragraph'
 )
 group1_graphs = html.Div(
-    style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '20px'},
+    className='group-graph-wrapper',
     children=[
-        create_scatter("budget", "revenue"),
-        create_scatter("budget", "popularity"),
-        create_scatter("revenue", "popularity")
+        html.Div(
+            className='group-graph-container',
+            children=[
+                create_scatter("budget", "revenue"),
+                create_scatter("budget", "popularity"),
+                create_scatter("revenue", "popularity")
+            ]
+        ),
     ]
 )
 
-group2_header = html.H4("2 - Groupe des indicateurs de perception qualitative : Vote", className="countries-card-label", style={'textAlign': 'center'}  )
+group2_header = html.H4("Groupe des indicateurs de perception qualitative : Vote", className="countries-card-label", style={'textAlign': 'center'}  )
 group2_description = html.P(
     "On pourrait croire qu’un film bien noté est forcément un film qui marche. Mais nos données racontent une autre histoire. La note moyenne n’a qu’une faible corrélation avec le revenu (0.19), et encore moins avec le budget (-0.03). Cela suggère qu’un film peut cartonner au box-office sans pour autant récolter des éloges du public ou des critiques. Conclusion : la qualité perçue est un facteur secondaire pour le succès immédiat. Un film “moyen” peut tout à fait trouver son public.",
     className='text-paragraph'
 )
+
 group2_graphs = html.Div(
-    style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '20px'},
+    className='group-graph-wrapper',
     children=[
-        create_scatter("budget", "vote_average"),
-        create_scatter("revenue", "vote_average"),
-        create_scatter("popularity", "vote_average")
+        html.Div(
+            className='group-graph-container',
+            children=[
+                create_scatter("budget", "vote_average"),
+                create_scatter("revenue", "vote_average"),
+                create_scatter("popularity", "vote_average")
+            ]
+        )
     ]
 )
 
-group3_header = html.H4("3 - Groupe des indicateurs de durée : Durée", className="countries-card-label", style={'textAlign': 'center'}  )
+group3_header = html.H4("Groupe des indicateurs de durée : Durée", className="countries-card-label", style={'textAlign': 'center'}  )
 group3_description = html.P(
     "La durée des films est un indicateur qu’on pourrait croire plus influent. Pourtant, les chiffres montrent le contraire. Les corrélations entre la durée et les autres variables sont faibles (0.23 avec le budget et le revenu, 0.18 avec la popularité, 0.38 avec la note moyenne). Conclusion : la durée n’a pas d’impact direct fort. Elle peut jouer un rôle indirect, par exemple sur le nombre de séances ou le rythme d’un film, mais ce n’est pas un facteur déterminant en soi.",
     className='text-paragraph'
 )
+
 group3_graphs = html.Div(
-    style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '20px'},
+    className='group-graph-wrapper',
     children=[
-        create_scatter("budget", "runtime"),
-        create_scatter("revenue", "runtime"),
-        create_scatter("popularity", "runtime"),
-        create_scatter("vote_average", "runtime")
+        html.Div(
+            className='group-graph-container',
+            children=[
+                create_scatter("budget", "runtime"),
+                create_scatter("revenue", "runtime"),
+                create_scatter("popularity", "runtime"),
+                create_scatter("vote_average", "runtime")
+            ]
+        )
     ]
 )
 
@@ -160,22 +177,10 @@ synthese_description = html.P(
 # Final App Layout with CSS classes applied
 # ============================================================
 
-def get_matrix_diagram():
+def get_chart():
     return html.Div(className='content', children=[
         html.Div(className='dashboard-card', children=[
             html.Div(className='card-content', children=[
-                html.Header(
-                    className="main-header",
-                    children=[
-                        html.Div(
-                            className="header-content",
-                            children=[
-                                html.H1("QUELS INGRÉDIENTS FONT LE SUCCÈS D'UN FILM ?", className="app-title"),
-                                html.P("Une exploration des données financières, qualitatives et structurelles.", className="header-subtitle")
-                            ]
-                        )
-                    ]
-                ),
                 html.Div(
                     className="main-content",
                     children=[
@@ -188,7 +193,12 @@ def get_matrix_diagram():
                             },
                         ),
                         html.Div(
-                            style={'marginTop': '40px'},
+                            style={
+                                'display': 'flex', 
+                                'flexDirection': 'column', 
+                                'justifyContent': 'space-between', 
+                                'alignItems': 'center'
+                            },
                             children=[
                                 group1_header,
                                 group1_description,
@@ -212,6 +222,14 @@ def get_matrix_diagram():
         ])
     ])
 
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
+def get_matrix_diagram():
+    return html.Div(
+        className='text',
+        children=[
+            html.H1(
+                "CORRÉLATIONS ENTRE FACTEURS",
+                className='text-title'
+            ),
+            get_chart(),
+        ]
+    )

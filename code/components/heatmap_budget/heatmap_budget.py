@@ -140,7 +140,7 @@ def update_heatmaps(selected_metric):
         ), axis=-1),
         hovertemplate='<b>%{customdata[0]}</b><br>Année: %{customdata[1]}<br>Budget: $%{customdata[2]:,.0f}<extra></extra>',
         hoverlabel=dict(
-            bgcolor="#ebe9e1",  # Couleur de fond
+            bgcolor="#ECE9E1",  # Couleur de fond
             font_size=14,     # Taille de la police
             font_family="system-ui",
             font_color='#e43d12',  # Couleur du texte
@@ -242,7 +242,7 @@ def update_heatmaps(selected_metric):
                       (f'Vote: %{{customdata[3]:.2f}}' if selected_metric == 'vote_average' else f'Revenu: $%{{customdata[3]:,.0f}}') + 
                       '<extra></extra>',
         hoverlabel=dict(
-            bgcolor="#ebe9e1",  # Couleur de fond
+            bgcolor="#ECE9E1",  # Couleur de fond
             font_size=14,     # Taille de la police
             font_family="system-ui",
             font_color=title_color,  # Couleur du texte
