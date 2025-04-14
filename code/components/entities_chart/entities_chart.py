@@ -85,7 +85,6 @@ def get_chart():
                                             "display": "none",
                                         }),
                                     html.H3('Ordre', className='countries-card-label'),
-                                    html.Hr(className='hr-label'),
                                     dcc.RadioItems(
                                         id="mini-order",
                                         options=[

@@ -15,7 +15,6 @@ def get_chart():
                         
                         html.Div(children=[
                             html.H3('Critères de Succès', className='countries-card-label'),
-                            html.Hr(className='hr-label'),
                             dcc.RadioItems(
                                 id='success-criteria',
                                 options=[
