@@ -22,6 +22,7 @@ from components.description import get_description
 from components.header import get_header
 from components.heatmap_budget.heatmap_budget import get_heatmap_budget
 from components.countries_chart.countries_chart import get_countries_chart
+from components.matrix_diagram.matrix_diagram import get_matrix_diagram
 
 #import preprocess as preproc
 header = get_header()
@@ -44,7 +45,8 @@ app.layout = html.Div(
             children=[
                 get_description(),
                 get_heatmap_budget(),
-                get_countries_chart()
+                get_countries_chart(),
+                get_matrix_diagram()
             ]
         ),
         html.Footer(
