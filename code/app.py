@@ -18,6 +18,7 @@ from dash.dependencies import Input, Output, State
 
 import plotly.graph_objects as go
 
+from components.footer import get_footer
 from components.description import get_description
 from components.header import get_header
 from components.heatmap_budget.heatmap_budget import get_heatmap_budget
@@ -51,11 +52,6 @@ app.layout = html.Div(
                 get_countries_chart(),
             ]
         ),
-        html.Footer(
-            className='main-header',
-            children=[
-                html.P("© ...")
-            ]
-        )
+        get_footer(),
     ]
 )
