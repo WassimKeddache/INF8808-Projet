@@ -9,8 +9,8 @@ def create_app():
     Retourne:
         Le serveur à exécuter
     '''
-    from app import server  # Importer le serveur depuis app.py
-    return server
+    from app import app    # Importer le serveur depuis app.py
+    return app.server
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))
