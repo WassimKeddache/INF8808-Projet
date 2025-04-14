@@ -220,7 +220,7 @@ def get_countries_chart():
         className='text',
         children=[
             html.H1(
-                "ORIGINE ET SUCCÈS",
+                "ORIGINE",
                 className='text-title'
             ),
             html.P(

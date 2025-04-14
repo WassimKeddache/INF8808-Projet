@@ -143,7 +143,7 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
     if entity_type == "actors":
         df_to_use = actors_agg
         entity_type_display = "Acteurs"
-        note_text = "(5 premiers par film)"
+        note_text = ""
         # Montrer les top 150 acteurs
         count = 150
     elif entity_type == "directors":
