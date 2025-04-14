@@ -359,19 +359,21 @@ def get_entities_chart():
             ),
             html.P(
                 """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                Seules les entités ayant participé à au moins films sont incluses
+                On vise à explorer l’impact potentiel des acteurs, réalisateurs et studios de production sur le succès 
+                d’un film, mesuré à travers le revenu moyen ou la note moyenne de leurs œuvres. Seules les entités (acteurs, réalisateurs et studios) ayant participé à au moins 10 films sont incluses
+                Il est possible d'avoir plus d'informations sur la filmographie de l'entité en cliquant sur les barres du graphique.
+                """,
+                className='text-paragraph'
+            ),
+            html.P(
+                """
+                À première vue, on peut formuler l’hypothèse que les studios et les réalisateurs influencent 
+                davantage le succès d’un film. Leur filmographie présente souvent une certaine constance dans les 
+                revenus générés et les notes obtenues, contrairement aux acteurs dont l’impact semble plus variable 
+                selon le projet.
                 """,
                 className='text-paragraph'
             ),
             get_chart(),
-            html.P(
-                """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                """,
-                className='text-paragraph'
-            ),
         ]
     )
