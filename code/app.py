@@ -1,23 +1,7 @@
-
-# -*- coding: utf-8 -*-
-
-'''
-    File name: app.py
-    Author: Olivia Gélinas
-    Course: INF8808
-    Python Version: 3.8
-
-    This file contains the source code for TP5.
-'''
-import json
-
+# app.py
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-from dash.dependencies import Input, Output, State
-
-import plotly.graph_objects as go
-
 from components.footer import get_footer
 from components.description import get_description
 from components.header import get_header
@@ -26,21 +10,17 @@ from components.countries_chart.countries_chart import get_countries_chart
 from components.matrix_diagram.matrix_diagram import get_matrix_diagram
 from components.entities_chart.entities_chart import get_entities_chart
 
-#import preprocess as preproc
-header = get_header()
-heatmap_budget = get_heatmap_budget()
-
+# Créer l'application Dash
 app = dash.Dash(__name__)
 app.title = 'Projet | INF8808'
 
+# Définir la disposition de l'application
 app.layout = html.Div(
     className='app-container',
     children=[
         html.Header(
             className='main-header',
-            children=[
-                get_header()
-            ]
+            children=[get_header()]
         ),
         html.Main(
             className='main-content',
@@ -55,3 +35,9 @@ app.layout = html.Div(
         get_footer(),
     ]
 )
+
+# Exposer l'instance du serveur Flask
+server = app.server  # Expose le serveur Flask sous-jacent
+
+if __name__ == "__main__":
+    app.run_server(debug=True)

@@ -1,21 +1,16 @@
-'''
-    Contains the server to run our application.
-'''
+# server.py
 from flask_failsafe import failsafe
 import os
 
 @failsafe
 def create_app():
     '''
-        Gets the underlying Flask server from our Dash app.
-
-        Returns:
-            The server to be run
+    Obtient le serveur sous-jacent Flask à partir de notre application Dash.
+    Retourne:
+        Le serveur à exécuter
     '''
-    # the import is intentionally inside to work with the server failsafe
-    from app import app  # pylint: disable=import-outside-toplevel
-    return app.server
-
+    from app import server  # Importer le serveur depuis app.py
+    return server
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))
