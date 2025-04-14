@@ -564,11 +564,11 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                 y=[row[metric]],
                 text=[row["formatted_value"]],
                 hoverinfo="text",
-                hovertext=["TEST"],
+                hovertext=[f"<b>{entity_name}<b>"],
                 marker_color=colors[i],
                 textposition="outside",
                 textfont_size=10,
-                width=0.8,
+                width=1,
                 name=entity_name,
             )
         )
@@ -679,11 +679,18 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
             zip(movie_titles, movie_revenues, movie_release_date)
         ):
             annee = int(release_date.split("-")[0])
+
+            info_to_show = (
+                "{display_revenue:.2f}M".format(display_revenue=revenue / 1000000)
+                if mini_order == "revenue"
+                else annee
+            )
+
             mini_fig.add_trace(
                 go.Bar(
                     x=[title],
                     y=[revenue],
-                    text=[row["formatted_value"]],
+                    text=[info_to_show],
                     hoverinfo="text",
                     hovertext=[
                         " <b> {display_title} <b> <br>".format(display_title=title)
