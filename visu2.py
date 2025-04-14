@@ -1,24 +1,23 @@
 import dash
 from dash import html, dcc
-from dash.dependencies import Input, Output
-import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import plotly.express as px
+import pandas as pd
 import json
-import itertools
 
-# Initialisation
 app = dash.Dash(__name__)
 app.title = 'Analyse des Films'
 
-# Chargement des données
+# ============================================================
+# Data Loading and Preprocessing
+# ============================================================
 df = pd.read_csv("data/combined.csv")
 
-# Prétraitement
 def extract_genres(genres_json):
     try:
         genres_json = genres_json.replace('""', '"')
-        genres_list = json.loads(genres_json)
-        return [genre['name'] for genre in genres_list]
+        return [genre['name'] for genre in json.loads(genres_json)]
     except Exception:
         return []
 
@@ -26,202 +25,259 @@ df['genres_list'] = df['genres'].apply(extract_genres)
 df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
 df['release_year'] = df['release_date'].dt.year
 
-# Nettoyage global de base
 df = df.dropna(subset=['budget', 'revenue', 'popularity', 'vote_count', 'vote_average', 'runtime'])
 df = df[(df['budget'] > 0) & (df['revenue'] > 0)]
 
-# Définir les paires personnalisées (sans runtime)
-# factor_pairs = [
-#     ('budget', 'revenue'),
-#     ('budget', 'popularity'),
-#     ('budget', 'vote_average'),
-#     ('revenue', 'popularity'),
-#     ('revenue', 'vote_average'),
-#     ('popularity', 'vote_average'),
-# ]
-
-
-# Map des labels
+# ============================================================
+# Label Mapping and Variables
+# ============================================================
 factor_label_map = {
     'budget': 'Budget (USD)',
     'revenue': 'Revenu (USD)',
     'popularity': 'Popularité',
     'vote_average': 'Note moyenne',
-    'runtime' : 'Duration (min)'
+    'runtime': 'Duration (min)'
 }
+vars_for_corr = ['budget', 'revenue', 'popularity', 'vote_average', 'runtime']
 
+# ============================================================
+# Main Splom and Correlation Table (Existing Visualization)
+# ============================================================
+# Define dimensions for the Splom
+dimensions = [
+    dict(label=factor_label_map['budget'], values=df['budget']),
+    dict(label=factor_label_map['revenue'], values=df['revenue']),
+    dict(label=factor_label_map['popularity'], values=df['popularity']),
+    dict(label=factor_label_map['vote_average'], values=df['vote_average']),
+    dict(label=factor_label_map['runtime'], values=df['runtime'])
+]
 
-factor_pairs = list(itertools.combinations(factor_label_map.keys(), 2))
-
-# Créer une matrice de comparaison pairwise
-def generate_comparison_matrix():
-    variables = list(factor_label_map.keys())
-    matrix = pd.DataFrame('', index=variables, columns=variables)
-    for x, y in factor_pairs:
-        i, j = variables.index(x), variables.index(y)
-        if i > j:
-            matrix.iloc[i, j] = 'x'
-        elif j > i:
-            matrix.iloc[j, i] = 'x'
-    return matrix
-
-# Layout
-app.layout = html.Div(style={
-    'display': 'flex',
-    'flexDirection': 'column',
-    'minHeight': '100vh',
-    'overflow': 'hidden'
-}, children=[
-    html.Header(style={'padding': '10px 20px', 'backgroundColor': '#f8f9fa', 'borderBottom': '1px solid #dee2e6'}, children=[
-        html.H1('Analyse des Films'),
-        html.P('Visualisation automatique des facteurs de succès.')
-    ]),
-
-    html.Div(id='dummy', style={'display': 'none'}),
-
-    html.Div(style={
-        'flex': 1,
-        'overflowY': 'scroll',
-        'padding': '20px'
-    }, children=[
-        html.Div(
-            id='scatter-plots-container'
+fig_splom = go.Figure(
+    data=go.Splom(
+        dimensions=dimensions,
+        showupperhalf=False,             # Show only lower triangle
+        diagonal=dict(visible=False),    # Hide the diagonal
+        marker=dict(
+            color='red',
+            opacity=0.7,
+            line_color='white',
+            line_width=0.5
+        ),
+        text=df['title'],
+        customdata=df[['release_year', 'vote_average', 'budget', 'revenue']].values,
+        hovertemplate=(
+            "<b>%{text}</b><br>" +
+            "Année: %{customdata[0]}<br>" +
+            "Note moyenne: %{customdata[1]}<br>" +
+            "Budget: %{customdata[2]:,}<br>" +
+            "Revenu: %{customdata[3]:,}<extra></extra>"
         )
-    ])
-])
-@app.callback(
-    Output('scatter-plots-container', 'children'),
-    [Input('dummy', 'children')]
+    )
 )
-def update_scatter_plots(_):
-    scatter_plots = []
-    
-    
-    # Création d'un bloc d'interprétation en haut, sur toute la largeur
-    interpretation_block = html.Div(
+
+fig_splom.update_layout(
+    title=dict(text="Matrice triangulaire des variables des films"),
+    autosize=False,
+    width=1920,
+    height=1080,
+    margin=dict(l=0, r=20, t=50, b=40)
+)
+
+# Compute correlation matrix for display
+corr_matrix = df[vars_for_corr].corr().round(2)
+
+def generate_lower_corr_table(corr_matrix):
+    header = [html.Th("Variable")] + [html.Th(col) for col in corr_matrix.columns]
+    rows_list = []
+    for i, row_name in enumerate(corr_matrix.index):
+        cells = [html.Td(row_name)]
+        for j, col_name in enumerate(corr_matrix.columns):
+            if i > j:
+                cells.append(html.Td(corr_matrix.iloc[i, j],
+                                     style={'padding': '5px', 'border': '1px solid #ccc'}))
+            else:
+                cells.append(html.Td("",
+                                     style={'padding': '5px', 'border': '1px solid #ccc',
+                                            'backgroundColor': '#f9f9f9'}))
+        rows_list.append(html.Tr(cells))
+    table = html.Table(
+        [html.Thead(html.Tr(header))] +
+        [html.Tbody(rows_list)],
         style={
             'width': '100%',
-            'border': '1px solid #ccc',
-            'padding': '20px',
-            'boxSizing': 'border-box',
-            'marginBottom': '20px'
-        },
-        children=[
-            html.H4("Interprétations"),
-            html.P("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor "
-                   "incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud "
-                   "exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
-        ]
+            'borderCollapse': 'collapse',
+            'textAlign': 'center',
+            'marginTop': '20px'
+        }
     )
+    return table
 
-    for x, y in factor_pairs:
-        x_label = factor_label_map[x]
-        y_label = factor_label_map[y]
+corr_table = generate_lower_corr_table(corr_matrix)
 
-        columns_needed = list({x, y, 'title', 'release_year', 'vote_average', 'budget', 'revenue', 'runtime'})
-        subset = df[columns_needed].dropna()
+# ============================================================
+# Helper function to create individual scatter plots
+# ============================================================
+def create_scatter(x_var, y_var):
+    # Only use every 10th row
+    dff = df.iloc[::4]  
+    fig = px.scatter(
+        dff,
+        x=x_var,
+        y=y_var,
+        hover_name="title",
+        hover_data=["release_year", "vote_average", "budget", "revenue"],
+        opacity=0.7,
+        color_discrete_sequence=["blue"]
+    )
+    fig.update_layout(
+        title=f"{factor_label_map[y_var]} vs {factor_label_map[x_var]}",
+        margin=dict(l=40, r=20, t=50, b=40)
+    )
+    return dcc.Graph(figure=fig, config={'responsive': True}, style={'width': '20%', 'height': '400px'})
+interpretation_header = html.H4("Interprétation")
+# ============================================================
+# Create Group 1: Indicateurs financiers et d’audience
+# ============================================================
+group1_header = html.H4("Groupe des indicateurs financiers et d’audience : Budget, Revenue et Popularité")
+group1_description = html.P("Le budget présente une forte corrélation avec le revenue (0.71) : cela suggère qu’un investissement financier conséquent se traduit souvent par des revenus élevés."
+                            "La popularité a également une corrélation modérée à forte avec le revenue (0.6) et une corrélation modérée avec le budget (0.43), soulignant que le buzz et la visibilité jouent un rôle important dans le succès commercial."
+                            )
+group1_interpretation = html.P("Ces résultats indiquent que, pour le succès commercial, l’investissement (budget) et la capacité à générer du buzz (popularité) sont des facteurs déterminants.")
+group1_graphs = html.Div(
+    style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '20px'},
+    children=[
+        create_scatter("budget", "revenue"),      # Revenue vs Budget
+        create_scatter("budget", "popularity"),     # Popularité vs Budget
+        create_scatter("revenue", "popularity")     # Popularité vs Revenue
+    ]
+)
 
-        if x in ['budget', 'revenue']:
-            subset = subset[subset[x] > 0]
-        if y in ['budget', 'revenue']:
-            subset = subset[subset[y] > 0]
+# ============================================================
+# Create Group 2: Indicateurs de perception qualitative : Vote
+# ============================================================
+group2_header = html.H4("Groupe des indicateurs de perception qualitative : Vote")
+group2_description = html.P("La note moyenne a une très faible corrélation avec le budget (-0.03) et seulement une faible corrélation avec le revenue (0.19) et la popularité (0.29)."
+                            "Cela montre qu’un film peut avoir de bonnes performances commerciales même si sa qualité perçue par le public n’est pas particulièrement élevée, et inversement."
+                            )
+group2_interpretation = html.P("La note moyenne semble être moins influente pour le succès commercial immédiat. Cela peut aussi refléter des cas où le bouche-à-oreille et d’autres mécanismes font que même un film moyennement noté peut attirer un large public.")
+group2_graphs = html.Div(
+    style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '20px'},
+    children=[
+        create_scatter("budget", "vote_average"),   # Note moyenne vs Budget
+        create_scatter("revenue", "vote_average"),    # Note moyenne vs Revenue
+        create_scatter("popularity", "vote_average")  # Note moyenne vs Popularité
+    ]
+)
 
-        # Sous-échantillonnage
-        subset = subset.iloc[::4]
+# ============================================================
+# Create Group 3: Le rôle de la durée (Runtime)
+# ============================================================
+group3_header = html.H4("Le rôle de la durée (Runtime)")
+group3_description = html.P("La durée présente des corrélations faibles avec toutes les autres variables (0.23 avec le budget et le revenue, 0.18 avec la popularité, et 0.38 avec la note moyenne).")
+group3_interpretation = html.P("La durée semble avoir peu d’impact direct sur le succès commercial ou la perception qualitative du film. Elle peut néanmoins jouer un rôle indirect"
+                               "(par exemple, une durée trop longue peut limiter le nombre de séances en salle, ou influencer la satisfaction des spectateurs dans certains genres)")
+group3_graphs = html.Div(
+    style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '20px'},
+    children=[
+        create_scatter("budget", "runtime"),        # Runtime vs Budget
+        create_scatter("revenue", "runtime"),         # Runtime vs Revenue
+        create_scatter("popularity", "runtime"),      # Runtime vs Popularité
+        create_scatter("vote_average", "runtime")     # Runtime vs Note moyenne
+    ]
+)
 
-        if subset.empty:
-            scatter_plots.append(
-                html.Div(
-                    style={'width': '400px', 'height': '400px', 'border': '1px dashed gray',
-                           'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center'},
-                    children=[html.P(f"Aucune donnée pour : {x_label} vs {y_label}")]
-                )
-            )
-            continue
+# ============================================================
+# Synthese
+# ============================================================
+synthese_header = html.H4("Synthèse")
+synthese_description = html.P("Le succès commercial (Revenu) est principalement associé à des investissements importants (budget) et à une forte interaction du public (popularité)."
+"La qualité perçue (Note moyenne), bien qu’importante d’un point de vue critique, n’explique pas à elle seule le succès commercial."
+"La durée ne semble pas être un facteur majeur lorsqu’elle est prise isolément."
+)
 
-        # Calcul du coefficient de corrélation
-        # Ici, on utilise la méthode .corr() de pandas
-        correlation = subset[x].corr(subset[y])
-        
-        # Création du graphique
-        fig = px.scatter(
-            subset,
-            x=x,
-            y=y,
-            hover_name='title',
-            hover_data=['release_year', 'vote_average', 'budget', 'revenue'],
-            opacity=0.7,
-            color_discrete_sequence=['red']
-        )
 
-        fig.update_layout(
-            xaxis_title=x_label,
-            yaxis_title=y_label,
-            autosize=True,
-            height=400,
-            margin=dict(l=40, r=20, t=50, b=40),
-        )
-
-        if x in ['budget', 'revenue']:
-            fig.update_xaxes(type='log')
-        if y in ['budget', 'revenue']:
-            fig.update_yaxes(type='log')
-
-        # Composant graphique avec affichage du coefficient en dessous
-        graph_block = html.Div(
-            style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'},
+# ============================================================
+# Final App Layout
+# ============================================================
+app.layout = html.Div(
+    style={'width': '100%', 'padding': '10px', 'boxSizing': 'border-box'},
+    children=[
+        html.H1("Analyse des Films"),
+        # Interpretation block above the main visualization
+        html.Div(
+            style={
+                'width': '100%',
+                'border': '1px solid #ccc',
+                'padding': '20px',
+                'marginBottom': '20px'
+            },
             children=[
-                dcc.Graph(
-                    figure=fig,
-                    config={'responsive': True},
-                    style={'width': '100%', 'maxWidth': '400px', 'height': '400px'}
+                html.H4("Interprétations"),
+                html.P(
+                    "La matrice triangulaire affiche la partie inférieure des relations entre les variables des films, "
+                    "tandis que le tableau de corrélation à droite présente les coefficients (r) pour chacune des paires. "
+                    "Les graphiques individuels ci-dessous permettent de se concentrer sur des groupes spécifiques d'indicateurs : "
+                    "les indicateurs financiers et d'audience (Group 1), la perception qualitative en termes de vote (Group 2), "
+                    "et le rôle de la durée (Group 3)."
+                )
+            ]
+        ),
+        # Main visualization: Splom and correlation table side by side
+        html.Div(
+            style={'display': 'flex', 'flexDirection': 'row', 'justifyContent': 'space-between'},
+            children=[
+                html.Div(
+                    style={'width': '70%'},
+                    children=[dcc.Graph(figure=fig_splom, config={'responsive': True})]
                 ),
                 html.Div(
-                    style={'marginTop': '10px'},
+                    style={
+                        'width': '30%',
+                        'padding': '10px',
+                        'border': '1px solid #ccc',
+                        'backgroundColor': '#fafafa',
+                        'boxSizing': 'border-box',
+                        'marginLeft': '20px'
+                    },
                     children=[
-                        html.P(f"Facteur de corrélation : {correlation:.2f}",
-                               style={'fontWeight': 'bold', 'textAlign': 'center'})
+                        html.H4("Matrice de Corrélation (partie inférieure)"),
+                        corr_table
                     ]
                 )
             ]
+        ),
+        # Second graph block (if any) can go here...
+        # Now add the three groups of individual scatter plots vertically:
+        html.Div(
+            style={'marginTop': '40px'},
+            children=[
+                # Group 1: Financiers & Audience
+                group1_header,
+                group1_description,
+                interpretation_header,
+                group1_interpretation,
+                group1_graphs,
+                # Group 2: Perception (Vote)
+                html.Br(),
+                group2_header,
+                group2_description,
+                interpretation_header,
+                group2_interpretation,
+                group2_graphs,
+                # Group 3: Runtime
+                html.Br(),
+                group3_header,
+                group3_description,
+                interpretation_header,
+                group3_interpretation,
+                group3_graphs,
+                html.Br(),
+                synthese_header,
+                synthese_description
+            ]
         )
+    ]
+)
 
-        scatter_plots.append(graph_block)
-
-    # Arrange plots in rows as before: 4, 3, 2, 1 plots per row
-    rows = [4, 3, 2, 1]
-    base_num_cols = rows[0]  # This will be 4, so the first row is "full" at 100%
-
-    layout = []
-    index = 0
-    for num_cols in rows:
-        # Grab the scatter plots that belong to this row
-        row_children = scatter_plots[index : index + num_cols]
-        index += num_cols
-
-        # Compute the row width as a fraction of the first row’s width
-        row_width = f"{(num_cols / base_num_cols) * 100}%"
-        
-        # Use CSS grid to place the given number of columns in this row
-        row_style = {
-            'display': 'grid',
-            'gridTemplateColumns': f'repeat({num_cols}, 1fr)',
-            'gridGap': '20px',
-            'width': row_width,
-            'marginLeft': '0',
-            'marginRight': '0',
-            'marginBottom': '20px'
-        }
-
-        
-        
-
-        layout.append(html.Div(style=row_style, children=row_children))
-
-    final_layout = [interpretation_block] + layout
-    return final_layout
-
-
-# Démarrage
 if __name__ == '__main__':
     app.run_server(debug=True)
