@@ -12,16 +12,15 @@ This file is the entry point for our dash app.
 import json
 import re
 
-import barchar_main
-import barchar_mini
+
+import barchar_mini as barchar_mini
 import dash
 import pandas as pd
 import plotly.graph_objects as go
-import template
+
 from dash import callback, dcc, html
 from dash.dependencies import Input, Output
 
-import preprocess
 
 app = dash.Dash(__name__)
 app.title = "Visu 4"
@@ -29,7 +28,7 @@ app.title = "Visu 4"
 actor_selected = None
 
 # Chargement des données
-df = pd.read_csv("../../data/combined.csv")
+df = pd.read_csv("../../../data/combined.csv")
 
 # Vérification et correction des valeurs de revenus
 print("Vérification des données de revenus...")

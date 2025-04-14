@@ -1,4 +1,3 @@
-import hover_template
 import plotly.express as px
 
 

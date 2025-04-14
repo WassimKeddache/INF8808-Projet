@@ -1,12 +1,9 @@
 import dash
 from dash import html, dcc, callback
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import json
-from datetime import datetime
-import numpy as np
 from .countries_chart_data import data_instance
 
 def get_chart():

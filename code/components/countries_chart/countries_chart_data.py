@@ -1,6 +1,5 @@
 import pandas as pd
 import json
-import pycountry
 
 genre_translations = {
     'Action': 'Action',
