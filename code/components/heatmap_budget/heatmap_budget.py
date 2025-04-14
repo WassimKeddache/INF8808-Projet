@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 from .heatmap_budget_data import data_instance
 
-def get_heatmap_budget():
+def get_chart():
     return html.Div(className='content', children=[
         html.Div(className='dashboard-card', children=[
             # Main content
@@ -30,12 +30,25 @@ def get_heatmap_budget():
                         className='heatmap-graph'
                     )
                 ]),
-                
+                html.Div(
+                    className='heatmap-legend',
+                    children=[
+                        html.Div(style={
+                            'width': '15px',
+                            'height': '15px',
+                            'backgroundColor': '#f2f2f2',  # gris clair
+                            'marginRight': '6px',
+                            'border': '1px solid #aaa'
+                        }),
+                        html.Span("= Aucune donnée")
+                    ]
+                ),
                 # Rangée avec le choix de métrique à gauche et hover info centré
                 html.Div(className='controls-and-info-row', children=[
                     # Choix de métrique à gauche
+                    html.Div(id='hover-info'),
+                    # Hover info centré
                     html.Div(className='metric-selector-container', children=[
-                        html.Label('Sélectionner une métrique:', className='control-label'),
                         dcc.RadioItems(
                             id='metric-selector',
                             options=[
@@ -48,17 +61,6 @@ def get_heatmap_budget():
                             labelClassName='radio-label'
                         )
                     ]),
-                    
-                    # Hover info centré
-                    html.Div(id='hover-info', className='hover-info-panel', style={
-                        'padding': '8px 12px',
-                        'minHeight': '40px',
-                        'display': 'none',  # Caché par défaut
-                        'flex': '1',
-                        'marginLeft': '20px',
-                        'max-width': 'fit-content',
-                        'min-width': '400px',
-                    })
                 ]),
             ]),
         ]),
@@ -67,7 +69,6 @@ def get_heatmap_budget():
         dcc.Store(id='heatmap-data-store')
     ])
 
-# Callback pour mettre à jour les deux heatmaps en fonction du sélecteur de métrique
 @callback(
     [Output('budget-heatmap', 'figure'),
      Output('metric-heatmap', 'figure')],
@@ -97,12 +98,38 @@ def update_heatmaps(selected_metric):
     # Définir l'ordre des genres (identique pour les deux heatmaps)
     genre_order = all_genre_names
     
+    # Créer des masques pour les valeurs nulles (0)
+    budget_mask = np.array(budget_df['budget']) == 0
+    metric_mask = np.array(metric_df[selected_metric]) == 0
+    
+    # Utiliser un gris plus clair pour les valeurs nulles
+    light_gray = "#f2f2f2"  # Gris clair
+    
     # Créer la heatmap pour le budget
-    budget_fig = go.Figure(data=go.Heatmap(
-        z=budget_df['budget'],
+    budget_fig = go.Figure()
+    
+    # Ajouter d'abord les cellules nulles en gris clair (en dessous)
+    budget_fig.add_trace(go.Heatmap(
+        z=np.where(budget_mask, 1, np.nan),  # 1 pour les 0, NaN pour le reste
         x=budget_df['release_date'],
         y=budget_df['genre'],
-        colorscale='Reds',
+        colorscale=[[0, light_gray], [1, light_gray]],  # Gris clair uniforme
+        showscale=False,
+        hoverinfo='skip'  # Ignorer complètement le hover pour cette couche
+    ))
+    
+    # Ajouter ensuite les cellules non-nulles avec l'échelle de couleur normale (au-dessus)
+    budget_fig.add_trace(go.Heatmap(
+        z=np.where(budget_mask, np.nan, budget_df['budget']),  # Remplacer les 0 par NaN
+        x=budget_df['release_date'],
+        y=budget_df['genre'],
+        colorscale = [
+            [0.0, "#f9c6b5"],   # rose très clair
+            [0.2, "#f39271"],   # orange clair
+            [0.4, "#ec6842"],   # orange foncé
+            [0.6, "#e43d12"],   # rouge-orangé intense
+            [1.0, "#a0210c"],   # rouge brun très foncé
+        ],
         zmin=budget_min_avg,
         zmax=budget_max_avg,
         customdata=np.stack((
@@ -111,13 +138,26 @@ def update_heatmaps(selected_metric):
             budget_df['budget'],
             metric_df[selected_metric]
         ), axis=-1),
-        hoverinfo='none',  # Désactiver l'info-bulle par défaut
-        hovertemplate=None
+        hovertemplate='<b>%{customdata[0]}</b><br>Année: %{customdata[1]}<br>Budget: $%{customdata[2]:,.0f}<extra></extra>',
+        hoverlabel=dict(
+            bgcolor="#ebe9e1",  # Couleur de fond
+            font_size=14,     # Taille de la police
+            font_family="system-ui",
+            font_color='#e43d12',  # Couleur du texte
+            bordercolor='#e43d12',  # Couleur de la bordure
+        )
     ))
     
     # Modification pour s'assurer que tous les genres sont affichés
     budget_fig.update_layout(
-        title='Budget moyen par genre (depuis 1970, par année)',
+        title= {
+            'text': 'Budget moyen par genre (depuis 1970, par année)',
+            'font': {
+                'color': '#e43d12',
+            },
+            'x': 0.5,  # Centrer le titre horizontalement
+            'xanchor': 'center'
+        },
         xaxis=dict(
             title='Année',
             tickmode='array',
@@ -137,7 +177,12 @@ def update_heatmaps(selected_metric):
         coloraxis_colorbar=dict(
             title='Budget moyen (USD)'
         ),
-        margin=dict(l=150, r=50, t=80, b=100)  # Augmenter la marge gauche pour les labels
+        margin=dict(l=150, r=50, t=80, b=100),  # Augmenter la marge gauche pour les labels
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+            font_family="Arial"
+        )
     )
     
     # Créer la heatmap pour la métrique sélectionnée
@@ -148,12 +193,40 @@ def update_heatmaps(selected_metric):
     
     # Utiliser les échelles de couleur standard
     color_scales = {
-        'revenue': 'Blues',
-        'vote_average': 'Greens'
+        'revenue': [
+            [0.0, "#fbe8c2"],   # crème très clair
+            [0.2, "#f6d27c"],   # jaune pâle
+            [0.4, "#f1be3e"],   # jaune foncé
+            [0.6, "#efb11d"],   # jaune orangé intense
+            [1.0, "#a87410"],   # brun doré foncé
+        ],
+        'vote_average': [
+            [0.0, "#ffe6ec"],   # rose très clair
+            [0.2, "#ffc7d3"],   # rose pastel
+            [0.4, "#ffa2b6"],   # rose saumon intense
+            [0.6, "#e17b93"],   # rose framboise
+            [1.0, "#b5536a"],   # vieux rose foncé
+        ]
     }
     
-    metric_fig = go.Figure(data=go.Heatmap(
-        z=metric_df[selected_metric],
+    # Créer la figure pour la métrique
+    metric_fig = go.Figure()
+    
+    # Ajouter d'abord les cellules nulles en gris clair (en dessous)
+    metric_fig.add_trace(go.Heatmap(
+        z=np.where(metric_mask, 1, np.nan),  # 1 pour les 0, NaN pour le reste
+        x=metric_df['release_date'],
+        y=metric_df['genre'],
+        colorscale=[[0, light_gray], [1, light_gray]],  # Gris clair uniforme
+        showscale=False,
+        hoverinfo='skip'  # Ignorer complètement le hover pour cette couche
+    ))
+    
+    # Ajouter ensuite les cellules non-nulles avec l'échelle de couleur normale (au-dessus)
+    title_color = '#efb11d' if selected_metric == 'revenue' else '#b5536a'
+
+    metric_fig.add_trace(go.Heatmap(
+        z=np.where(metric_mask, np.nan, metric_df[selected_metric]),  # Remplacer les 0 par NaN
         x=metric_df['release_date'],
         y=metric_df['genre'],
         colorscale=color_scales[selected_metric],
@@ -165,12 +238,29 @@ def update_heatmaps(selected_metric):
             budget_df['budget'],
             metric_df[selected_metric]
         ), axis=-1),
-        hoverinfo='none',  # Désactiver l'info-bulle par défaut
-        hovertemplate=None
+        hovertemplate='<b>%{customdata[0]}</b><br>Année: %{customdata[1]}<br>' + 
+                      (f'Vote: %{{customdata[3]:.2f}}' if selected_metric == 'vote_average' else f'Revenu: $%{{customdata[3]:,.0f}}') + 
+                      '<extra></extra>',
+        hoverlabel=dict(
+            bgcolor="#ebe9e1",  # Couleur de fond
+            font_size=14,     # Taille de la police
+            font_family="system-ui",
+            font_color=title_color,  # Couleur du texte
+            bordercolor=title_color,  # Couleur de la bordure
+        )
     ))
     
+    # D6536D e43d12
+    
     metric_fig.update_layout(
-        title=f'{metric_labels[selected_metric]} par genre (depuis 1970, par année)',
+        title={
+            'text': f'{metric_labels[selected_metric]} par genre (depuis 1970, par année)',
+            'font': {
+                'color': title_color,
+            },
+            'x': 0.5,  # Centrer le titre horizontalement
+            'xanchor': 'center'
+        },
         xaxis=dict(
             title='Année',
             tickmode='array',
@@ -187,27 +277,51 @@ def update_heatmaps(selected_metric):
         coloraxis_colorbar=dict(
             title=metric_labels[selected_metric]
         ),
-        margin=dict(l=0, r=50, t=80, b=100)
+        margin=dict(l=0, r=50, t=80, b=100),
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+            font_family="Arial"
+        )
     )
     
     return budget_fig, metric_fig
 
 # Callback pour mettre à jour les informations de survol
 @callback(
-    [Output('hover-info', 'children'),
-     Output('hover-info', 'style')],
+    [Output('hover-info', 'children')],
     [Input('budget-heatmap', 'hoverData'),
      Input('metric-heatmap', 'hoverData')],
-    [State('metric-selector', 'value'),
-     State('hover-info', 'style')]
+    [State('metric-selector', 'value')]
 )
-def update_hover_info(budget_hover, metric_hover, selected_metric, current_style):
+def update_hover_info(budget_hover, metric_hover, selected_metric):
     # Déterminer quel graphique a déclenché le callback
     ctx = dash.callback_context
+
+    default_hover = html.Div(
+        className='heatmap-hover-info',
+        children=[
+            html.Div(
+                className="heatmap-hover-label-container",
+                children=[
+                    html.Span("Sélectionnez une cellule pour voir les détails.", className="heatmap-hover-label"),
+                    html.Span("", className="heatmap-hover-value"),
+                    html.Span("", className="heatmap-hover-label"),
+                    html.Span("", className="heatmap-hover-value"),
+                ]
+            ),
+            html.Div(className="heatmap-hover-label-container", children=[
+                html.Strong("", className="heatmap-hover-label"),
+                html.Span("", className="heatmap-hover-value"),
+                html.Strong("", className="heatmap-hover-label"),
+                html.Span("", className="heatmap-hover-value")
+            ])
+        ]
+    )
+    
     if not ctx.triggered:
         # Si aucun déclencheur, cacher le div
-        current_style['display'] = 'none'
-        return "", current_style
+        return [default_hover]
     
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
@@ -218,8 +332,7 @@ def update_hover_info(budget_hover, metric_hover, selected_metric, current_style
         hover_data = metric_hover['points'][0]
     else:
         # Si pas de données de survol, cacher le div
-        current_style['display'] = 'none'
-        return "", current_style
+        return [default_hover]
     
     # Extraire les données personnalisées
     genre = hover_data['customdata'][0]
@@ -233,35 +346,56 @@ def update_hover_info(budget_hover, metric_hover, selected_metric, current_style
         'vote_average': 'Vote moyen'
     }
     
-    hover_info = html.Div([
-        html.H4(f"Genre: {genre}, Année: {year}"),
-        html.Div([
-            html.Div([
-                html.Strong("Budget moyen: "),
-                html.Span(f"{budget:,.2f} USD")
-            ]),
-            html.Div([
-                html.Strong(f"{metric_labels[selected_metric]}: "),
-                html.Span(f"{metric_value:,.2f}" + (" USD" if selected_metric == 'revenue' else ""))
+    hover_info = html.Div(
+        className= 'heatmap-hover-info',
+        children=
+        [
+            html.Div(
+                className="heatmap-hover-label-container",
+                children=[
+                    html.Span("Genre:", className="heatmap-hover-label"),
+                    html.Span(f"{genre}", className="heatmap-hover-value"),
+                    html.Span("Année:", className="heatmap-hover-label"),
+                    html.Span(f"{year}", className="heatmap-hover-value"),
+                ]
+            ),
+            html.Div(className="heatmap-hover-label-container", children= [
+                    html.Strong("Budget moyen: ", className="heatmap-hover-label"),
+                    html.Span(f"{budget:,.2f} USD", className="heatmap-hover-value"),
+                    html.Strong(f"{metric_labels[selected_metric]}: ", className="heatmap-hover-label"),
+                    html.Span(f"{metric_value:,.2f}" + (" USD" if selected_metric == 'revenue' else ""), className="heatmap-hover-value")
             ])
-        ])
-    ])
+        ]
+    )
     
-    # Afficher le div
-    current_style['display'] = 'block'
-    
-    return hover_info, current_style
+    return [hover_info]
 
-def get_heatmap_budget_text():
+def get_heatmap_budget():
     return html.Div(
         className='text',
         children=[
             html.H1(
-                "Genre et budget",
+                "GENRE ET BUDGET",
+                className='text-title'
             ),
             html.P(
-                "A CHANGER ------------------- Cette section présente deux heatmaps côte à côte. La première heatmap affiche le budget moyen par genre et année, tandis que la seconde heatmap affiche une métrique sélectionnable (revenu moyen ou vote moyen) par genre et année. "
-                "Les utilisateurs peuvent interagir avec les heatmaps pour explorer les données et obtenir des informations sur les tendances cinématographiques."
-            )
+                """
+                On cherche à comprendre si le genre d’un film ainsi que son budget jouent un rôle central dans son succès. 
+                Cette visualisation explore leur évolution dans le temps et leur lien avec les performances critiques et financières.
+                """,
+                className='text-paragraph'
+            ),
+            get_chart(),
+            html.P(
+                """
+                On observe une tendance générale à allouer des budgets plus importants aux films au fil des décennies. 
+                Les genres comme l’aventure, l’action, la famille, la science-fiction et le fantastique bénéficient d’une croissance marquée de leur budget, 
+                accompagnée d’une évolution positive de leurs revenus moyens, ce qui suggère un lien entre investissement financier et succès commercial. 
+                Toutefois, certains films réussissent à générer des revenus élevés malgré un budget réduit, notamment dans les genres horreur (1973, 1975), 
+                thriller (1975), famille (1982), et animation (1992, 1994, 1995). En revanche, les votes moyens restent relativement stables à travers les genres et les années, 
+                indiquant une appréciation critique plus uniforme.
+                """,
+                className='text-paragraph'
+            ),
         ]
     )

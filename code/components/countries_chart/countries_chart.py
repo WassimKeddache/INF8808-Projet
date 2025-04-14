@@ -9,77 +9,67 @@ from datetime import datetime
 import numpy as np
 from .countries_chart_data import data_instance
 
-def get_countries_chart():
-    return html.Div(style={'font-family': 'Arial, sans-serif', 'margin': '0', 'padding': '0'}, children=[
-    # Conteneur principal
-    html.Div(style={'display': 'flex', 'flex-wrap': 'wrap', 'padding': '20px'}, children=[
-        # Panneau de contrôle
-        html.Div(style={
-            'width': '300px',
-            'padding': '20px',
-            'background-color': '#f8f9fa',
-            'border-radius': '5px',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
-            'margin-right': '20px'
-        }, children=[
-            html.H3('Critères de Succès'),
-            
-            # Sélection du critère de succès
-            html.Div(style={'margin-bottom': '20px'}, children=[
-                html.Label('Sélectionner le critère:'),
-                dcc.RadioItems(
-                    id='success-criteria',
-                    options=[
-                        {'label': 'Revenu > 10M$', 'value': 'revenue'},
-                        {'label': 'Note > 7', 'value': 'vote_average'}
-                    ],
-                    value='revenue',
-                    labelStyle={'display': 'block', 'margin': '10px 0'}
+def get_chart():
+    return html.Div(className='content', children=[
+        # Conteneur principal
+        html.Div(className='dashboard-card', children=[
+            html.Div(className='countries-card-content', children=[
+                html.Div( className='countries-card-pannel', children=[
+                        
+                        html.Div(children=[
+                            html.H3('Critères de Succès', className='countries-card-label'),
+                            dcc.RadioItems(
+                                id='success-criteria',
+                                options=[
+                                    {'label': 'Revenu > 10M$', 'value': 'revenue'},
+                                    {'label': 'Note > 7', 'value': 'vote_average'}
+                                ],
+                                value='revenue',
+                                inputClassName='radio-input',
+                                labelClassName='radio-label'
+                            )
+                        ]),
+                        
+                        # Sélection du genre
+                        html.Div(children=[
+                            html.Label('Filtrer par genre:', className='countries-card-label'),
+                            dcc.Dropdown(
+                                id='genre-filter',
+                                options=[{'label': genre, 'value': genre} for genre in data_instance.get_data()['all_genres']],
+                                value=None,
+                                placeholder='Tous les genres'
+                            )
+                        ]),
+                        
+                        # Ajout d'un indicateur de débogage
+                    ]
+                ),
+                
+                # Zone de visualisation
+                html.Div(
+                    className='countries-chart-container',
+                    children=[
+                        dcc.Graph(
+                            id='bar-chart',
+                            style={'height': '70vh'},
+                            config={'displayModeBar': True}
+                        ),
+                        html.Div(id='chart-info', className='chart-info')
+                    ]
                 )
-            ]),
-            
-            # Sélection du genre
-            html.Div(style={'margin-bottom': '20px'}, children=[
-                html.Label('Filtrer par genre:'),
-                dcc.Dropdown(
-                    id='genre-filter',
-                    options=[{'label': genre, 'value': genre} for genre in data_instance.get_data()['all_genres']],
-                    value=None,
-                    placeholder='Tous les genres'
-                )
-            ]),
-            
-            # Ajout d'un indicateur de débogage
-            html.Div(id='debug-info', style={'margin-top': '20px', 'font-size': '12px', 'color': '#666'})
-        ]),
-        
-        # Zone de visualisation
-        html.Div(style={
-            'flex': '1',
-            'min-width': '600px',
-            'background-color': 'white',
-            'border-radius': '5px',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
-            'padding': '20px'
-        }, children=[
-            dcc.Graph(
-                id='bar-chart',
-                style={'height': '70vh'},
-                config={'displayModeBar': True}
-            ),
-            html.Div(id='chart-info', style={'margin-top': '20px', 'text-align': 'center'})
+            ])
         ])
-    ])])
+    ])
 
 @callback(
     [Output('bar-chart', 'figure'),
-     Output('chart-info', 'children'),
-     Output('debug-info', 'children')],
+     Output('chart-info', 'children')],
     [Input('success-criteria', 'value'),
      Input('genre-filter', 'value')]
 )
 def update_bar_chart(criteria, selected_genre):
-    # Définir le seuil en fonction du critère
+    # TODO Rendre max abcisse fix
+
     if criteria == 'revenue':
         threshold = 10 * 1000000  # 10M$
         threshold_text = "10M$"
@@ -91,56 +81,34 @@ def update_bar_chart(criteria, selected_genre):
     filtered_df = data_instance.get_data()['df']
     filtered_df['meets_threshold'] = filtered_df[criteria] >= threshold
     
-    # Agréger les données par pays - compter le nombre de films qui dépassent le seuil
-    agg_df = filtered_df.groupby('countries').agg({
-        'meets_threshold': 'sum',  # Compte les films qui dépassent le seuil
-        'title': 'count'           # Compte total de films
-    }).reset_index()
+    agg_df = filtered_df.groupby('countries').agg({'meets_threshold': 'sum', 'title': 'count' }).reset_index()
     
-    # Renommer les colonnes pour plus de clarté
-    agg_df.rename(columns={
-        'meets_threshold': 'successful_films',
-        'title': 'total_films'
-    }, inplace=True)
+    agg_df.rename(columns={'meets_threshold': 'successful_films', 'title': 'total_films'}, inplace=True)
     
-    # Trier par nombre de films réussis et prendre les 10 premiers
-    top_countries = agg_df.sort_values('successful_films', ascending=False).head(10)
+
+    top_countries = agg_df.sort_values('successful_films', ascending=False).head(10) # Top 10 pays par nombre de films réussis
     
-    # Préparer les données pour le graphique
     countries = top_countries['countries'].tolist()
     successful_films = top_countries['successful_films'].tolist()
     
-    # Préparer les données pour le genre
     genre_data = [0] * len(countries)
     ratio_data = [0] * len(countries)
     
-    # Si un genre est sélectionné, calculer les données du genre
     if selected_genre:
-        # Filtrer les films du genre sélectionné
         genre_filtered_df = filtered_df[filtered_df['genres_list'].apply(lambda x: selected_genre in x if isinstance(x, list) else False)]
         
-        # Agréger les données par pays pour le genre sélectionné
-        genre_agg_df = genre_filtered_df.groupby('countries').agg({
-            'meets_threshold': 'sum'  # Compte les films du genre qui dépassent le seuil
-        }).reset_index()
+        genre_agg_df = genre_filtered_df.groupby('countries').agg({'meets_threshold': 'sum'}).reset_index()
         
-        genre_agg_df.rename(columns={
-            'meets_threshold': 'genre_successful_films'
-        }, inplace=True)
+        genre_agg_df.rename(columns={'meets_threshold': 'genre_successful_films'}, inplace=True)
         
-        # Fusionner avec les pays du top 10
-        genre_top_countries = pd.merge(
-            top_countries[['countries', 'successful_films']], 
-            genre_agg_df, 
-            on='countries', 
-            how='left'
-        ).fillna(0)
+        genre_top_countries = pd.merge(top_countries[['countries', 'successful_films']], genre_agg_df, on='countries', how='left').fillna(0)
         
         # Mettre à jour les données du genre
         genre_data = genre_top_countries['genre_successful_films'].tolist()
         ratio_data = [g/t*100 if t > 0 else 0 for g, t in zip(genre_data, successful_films)]
+        successful_films = [sf - gd for sf, gd in zip(successful_films, genre_data)]  # Mettre à jour le nombre total de films réussis
     
-    # Créer un DataFrame pour le graphique
+    # DataFrame pour le graphique
     chart_df = pd.DataFrame({
         'country': countries,
         'total': successful_films,
@@ -148,62 +116,78 @@ def update_bar_chart(criteria, selected_genre):
         'ratio': ratio_data
     })
     
-    # Trier le DataFrame pour l'affichage (du plus grand au plus petit)
     chart_df = chart_df.sort_values('total', ascending=True)
     
-    # Créer le graphique avec Plotly Express (plus stable pour les barres)
     if selected_genre:
-        # Utiliser un graphique à barres empilées
         fig = px.bar(
             chart_df,
             y='country',
-            x=['genre', 'total'],  # Première valeur = genre, deuxième valeur = reste
+            x=['genre', 'total'],
             orientation='h',
-            barmode='relative',  # Mode relatif pour l'empilement
-            color_discrete_sequence=['#e74c3c', '#3498db'],  # Rouge pour genre, bleu pour total
+            barmode='relative',
+            color_discrete_sequence=['#efb11d', '#e43d12'],  # Rouge pour genre, bleu pour total
             labels={
                 'country': 'Pays',
                 'value': 'Nombre de Films',
-                'variable': 'Catégorie'
+                'variable': ''
             },
-            title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
+            title=f"Top 10 Pays par Nombre de Films avec{'un Revenue' if criteria == 'revenue' else 'une Note'} > {threshold_text}"
         )
-        
-        # Modifier la légende
+
         fig.data[0].name = selected_genre
-        fig.data[1].name = f'Autres films avec {criteria} > {threshold_text}'
+        fig.data[1].name = 'Total'
         
         # Ajouter des informations personnalisées pour le survol
         for i, trace in enumerate(fig.data):
             if i == 0:  # Trace du genre
                 trace.hovertemplate = '<b>%{y}</b><br>' + f'{selected_genre}: ' + '%{x}<br><extra></extra>'
+                trace.hoverlabel = dict(
+                    bgcolor="#ebe9e1",  # Couleur de fond
+                    font_size=14,     # Taille de la police
+                    font_family="system-ui",
+                    font_color="#efb11d",  # Couleur du texte
+                    bordercolor="#efb11d",  # Couleur de la bordure
+                )
             else:  # Trace du total
                 trace.hovertemplate = '<b>%{y}</b><br>Total: %{customdata}<br>Ratio: %{text}<extra></extra>'
                 trace.customdata = chart_df['total'].tolist()
                 trace.text = [f"{r:.1f}%" for r in chart_df['ratio'].tolist()]
+                trace.hoverlabel = dict(
+                    bgcolor="#ebe9e1",  # Couleur de fond
+                    font_size=14,     # Taille de la police
+                    font_family="system-ui",
+                    font_color="#e43d12",  # Couleur du texte
+                    bordercolor="#e43d12",  # Couleur de la bordure
+                )
     else:
-        # Utiliser un graphique à barres simple
         fig = px.bar(
             chart_df,
             y='country',
             x='total',
             orientation='h',
-            color_discrete_sequence=['#3498db'],  # Bleu pour total
+            color_discrete_sequence=['#e43d12'],  # Bleu pour total
             labels={
                 'country': 'Pays',
                 'total': 'Nombre de Films'
             },
-            title=f"Top 10 Pays par Nombre de Films avec {criteria} > {threshold_text}"
         )
         
-        # Modifier la légende
-        fig.data[0].name = f'Films avec {criteria} > {threshold_text}'
-        
-        # Ajouter des informations personnalisées pour le survol
-        fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>'
-    
-    # Mise en page du graphique
+        fig.data[0].name = f'Films avec {criteria} > {threshold_text}' # Modifier la légende
+        fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>' # Ajouter des informations personnalisées pour le survol
+        fig.data[0].hoverlabel = dict(
+            bgcolor="#ebe9e1",  # Couleur de fond
+            font_size=14,     # Taille de la police
+            font_family="system-ui",
+            font_color="#e43d12",  # Couleur du texte
+            bordercolor="#e43d12",  # Couleur de la bordure
+        )
     fig.update_layout(
+        title ={
+            'text': f"Top 10 Pays par Nombre de Films avec {'un Revenue' if criteria == 'revenue' else 'une Note'} > {threshold_text}",
+            'font': {
+                'color': '#e43d12',
+            },
+        },
         xaxis_title="Nombre de Films",
         yaxis_title="Pays",
         legend=dict(
@@ -217,11 +201,9 @@ def update_bar_chart(criteria, selected_genre):
         height=600
     )
     
-    # Texte d'information
-    genre_text = f"Genre: {selected_genre}" if selected_genre else "Aucun genre sélectionné"
+    genre_text = f"Genre: {selected_genre}" if selected_genre else "Aucun genre sélectionné" # Texte d'information
     total_successful = sum(successful_films)
     
-    # Si un genre est sélectionné, calculer le total pour ce genre
     genre_total = sum(genre_data) if selected_genre else 0
     ratio_text = f"Ratio {selected_genre}/Total: {genre_total/total_successful*100:.1f}%" if selected_genre and total_successful > 0 else ""
     
@@ -233,27 +215,34 @@ def update_bar_chart(criteria, selected_genre):
     # Information de débogage
     debug_text = f"Données agrégées: {len(agg_df)} pays, max={agg_df['successful_films'].max()} films dépassant le seuil"
     
-    return fig, info_text, debug_text
+    return fig, info_text
 
-def get_countries_chart_text():
+def get_countries_chart():
     return html.Div(
         className='text',
         children=[
             html.H1(
-                "Pays",
+                "ORIGINE ET SUCCÈS",
+                className='text-title'
             ),
             html.P(
                 """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
-                Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, 
-                nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula. 
-                Donec lobortis risus a elit. Etiam tempor. Ut ullamcorper, ligula eu tempor congue, eros est euismod turpis, 
-                id tincidunt sapien risus a quam. Maecenas fermentum consequat mi. Donec fermentum. Pellentesque malesuada nulla a mi. 
-                Duis sapien sem, aliquet nec, commodo eget, consequat quis, neque.
+                Cette visualisation présente un diagramme à barres horizontales permettant d'analyser le nombre de films par pays répondant à deux critères : 
+                un revenu minimum de 10 millions et une note minimum de 7. L'utilisateur peut également filtrer par genre pour observer la répartition des films par pays 
+                en fonction de leur genre spécifique. Le total des genres n'est pas complémentaire, car plusieurs films peuvent avoir plusieurs genres.
                 """,
+                className='text-paragraph'
             ),
-        ],
+            get_chart(),
+            html.P(
+                """
+                Cette visualisation permet de mettre en évidence l'impact potentiel de l'origine d'un film sur son succès. 
+                En effet, la grande majorité des films répondant aux critères sont américains, ce qui souligne la domination des États-Unis dans l'industrie cinématographique. 
+                Viennent ensuite les films britanniques et allemands. Une observation intéressante est que les films américains qui respectent ces critères sont majoritairement des comédies, 
+                avec un nombre nettement plus élevé de films de comédie générant des revenus supérieurs à 10 millions par rapport aux films d'action, même lorsque l'on prend en compte la note. 
+                Cela suggère que le genre d'un film, ainsi que son pays d'origine, peuvent avoir une influence considérable sur son succès.
+                """,
+                className='text-paragraph'
+            ),
+        ]
     )

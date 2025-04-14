@@ -1,6 +1,29 @@
 import json
 import pandas as pd
 
+genre_translations = {
+    'Action': 'Action',
+    'Adventure': 'Aventure',
+    'Animation': 'Animation',
+    'Comedy': 'Comédie',
+    'Crime': 'Crime',
+    'Documentary': 'Documentaire',
+    'Drama': 'Drame',
+    'Family': 'Famille',
+    'Fantasy': 'Fantastique',
+    'Foreign': 'Étranger',
+    'History': 'Historique',
+    'Horror': 'Horreur',
+    'Music': 'Musique',
+    'Mystery': 'Mystère',
+    'Romance': 'Romance',
+    'Science Fiction': 'Science-fiction',
+    'TV Movie': 'Téléfilm',
+    'Thriller': 'Thriller',
+    'War': 'Guerre',
+    'Western': 'Western'
+}
+
 class HeatmapBudgetData:
     def __init__(self):
         df = pd.read_csv("../data/combined.csv")
@@ -21,6 +44,7 @@ class HeatmapBudgetData:
             # Analyser le JSON
             genres_list = json.loads(genres_json)
             # Extraire les noms des genres
+
             return [genre['name'] for genre in genres_list]
         except Exception as e:
             print(f"Erreur lors de l'extraction des genres: {e}")
@@ -37,11 +61,14 @@ class HeatmapBudgetData:
 
         # Mis à jour des noms de genre
         all_genre_names = sorted(df_exploded['genre'].unique())  # Trier les genres par ordre alphabétique
+        
+        # Appliquer la traduction
+        df_exploded['genre'] = df_exploded['genre'].map(genre_translations)
+        all_genre_names = sorted(df_exploded['genre'].dropna().unique())  # Mise à jour avec les noms traduits
 
         # Calculer les moyennes par genre et année pour tout le dataset
         all_budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
         all_revenue_avg = df_exploded.groupby(['genre', 'release_date'])['revenue'].mean().reset_index()
-        all_vote_avg = df_exploded.groupby(['genre', 'release_date'])['vote_average'].mean().reset_index()
 
         # Calculer les valeurs min et max des MOYENNES pour chaque métrique
         budget_min_avg = all_budget_avg['budget'].min()
@@ -51,8 +78,8 @@ class HeatmapBudgetData:
         # Définir le max du revenu à 400 millions comme demandé
         revenue_max_avg = 400000000  # 400 millions
 
-        vote_min_avg = all_vote_avg['vote_average'].min()
-        vote_max_avg = all_vote_avg['vote_average'].max()
+        vote_min_avg = 0
+        vote_max_avg = 10
 
         # Dictionnaire des plages de valeurs pour chaque métrique (basé sur les moyennes)
         metric_ranges = {
