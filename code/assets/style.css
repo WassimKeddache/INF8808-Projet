@@ -300,6 +300,7 @@ body {
 .countries-card-label {
     font-size: 2rem;
     font-weight: 1000;
+    height: 5px;
     color: var(--primary-color);
 }
 
@@ -344,6 +345,62 @@ body {
     /* ou la largeur que tu veux pour limiter la ligne */
 }
 
+
+
+.entity-bar-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.entity-bar-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    gap: 40px;
+}
+
+.mini-entity-bar-container {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+}
+
+.entity-bar-container {
+    height: 70vh;
+    width: 80%;
+}
+
+.main-entity-bar-pannel {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: left;
+    padding: 20px;
+    gap: 50px;
+}
+
+.mini-entity-bar-pannel {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: left;
+    padding: 20px;
+}
+
+.hr-label {
+    border: none;
+    /* Supprime la bordure par défaut */
+    height: 3px;
+    /* Épaisseur de la ligne */
+    background-color: #e43d12;
+    /* Couleur de la ligne */
+    margin: 10px 0;
+    /* Espacement vertical */
+}
 
 /* Responsive design - GARDER les heatmaps côte à côte */
 @media (max-width: 768px) {

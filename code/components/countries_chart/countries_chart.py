@@ -15,6 +15,7 @@ def get_chart():
                         
                         html.Div(children=[
                             html.H3('Critères de Succès', className='countries-card-label'),
+                            html.Hr(className='hr-label'),
                             dcc.RadioItems(
                                 id='success-criteria',
                                 options=[
@@ -29,7 +30,7 @@ def get_chart():
                         
                         # Sélection du genre
                         html.Div(children=[
-                            html.Label('Filtrer par genre:', className='countries-card-label'),
+                            html.Label('Filtrer par genre', className='countries-card-label'),
                             dcc.Dropdown(
                                 id='genre-filter',
                                 options=[{'label': genre, 'value': genre} for genre in data_instance.get_data()['all_genres']],
@@ -122,7 +123,7 @@ def update_bar_chart(criteria, selected_genre):
             x=['genre', 'total'],
             orientation='h',
             barmode='relative',
-            color_discrete_sequence=['#efb11d', '#e43d12'],  # Rouge pour genre, bleu pour total
+            color_discrete_sequence=['#efb11d', '#e43d12'],
             labels={
                 'country': 'Pays',
                 'value': 'Nombre de Films',
@@ -172,11 +173,11 @@ def update_bar_chart(criteria, selected_genre):
         fig.data[0].name = f'Films avec {criteria} > {threshold_text}' # Modifier la légende
         fig.data[0].hovertemplate = '<b>%{y}</b><br>Films: %{x}<extra></extra>' # Ajouter des informations personnalisées pour le survol
         fig.data[0].hoverlabel = dict(
-            bgcolor="#ECE9E1",  # Couleur de fond
-            font_size=14,     # Taille de la police
+            bgcolor="#ECE9E1",
+            font_size=14,
             font_family="system-ui",
-            font_color="#e43d12",  # Couleur du texte
-            bordercolor="#e43d12",  # Couleur de la bordure
+            font_color="#e43d12",
+            bordercolor="#e43d12",
         )
     fig.update_layout(
         title ={

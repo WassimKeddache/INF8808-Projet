@@ -8,152 +8,89 @@ from .barchar_mini import get_empty_figure
 from .barchar_mini import get_graph_info
 from .entities_chart_data import data_instance
 
-def get_entities_chart():
+def get_chart():
     return html.Div(
-        style={"font-family": "Arial, sans-serif", "margin": "0", "padding": "0"},
+        className='dashboard-card',
         children=[
             # En-tête
-            html.Header(
-                style={
-                    "background-color": "#2c3e50",
-                    "color": "white",
-                    "padding": "20px",
-                    "text-align": "center",
-                },
-                children=[
-                    html.H1(
-                        "Impact des Acteurs, Réalisateurs et Studios sur le Succès des Films",
-                        style={"margin": "0"},
-                    ),
-                    html.P(
-                        "Analyse comparative des performances basée sur différentes métriques",
-                        style={"margin-top": "10px"},
-                    ),
-                ],
-            ),
-            # Conteneur principal
             html.Div(
-                style={"display": "flex", "flex-wrap": "wrap", "padding": "20px"},
+                className='entity-bar-content',
                 children=[
                     # Panneau de contrôle
-                    html.Div(
-                        style={
-                            "width": "300px",
-                            "padding": "20px",
-                            "background-color": "#f8f9fa",
-                            "border-radius": "5px",
-                            "box-shadow": "0 2px 4px rgba(0,0,0,0.1)",
-                            "margin-right": "20px",
-                        },
-                        children=[
-                            html.H3("Paramètres de Visualisation"),
-                            # Sélection du type d'entité
-                            html.Div(
-                                style={"margin-bottom": "20px"},
-                                children=[
-                                    html.Label("Type d'entité:"),
-                                    dcc.RadioItems(
-                                        id="entity-type",
-                                        options=[
-                                            {
-                                                "label": "Acteurs (5 premiers par film)",
-                                                "value": "actors",
-                                            },
-                                            {"label": "Réalisateurs", "value": "directors"},
-                                            {"label": "Studios", "value": "studios"},
-                                        ],
-                                        value="actors",
-                                        labelStyle={"display": "block", "margin": "10px 0"},
-                                    ),
-                                ],
-                            ),
-                            # Sélection de la métrique
-                            html.Div(
-                                style={"margin-bottom": "20px"},
-                                children=[
-                                    html.Label("Métrique de succès:"),
-                                    dcc.RadioItems(
-                                        id="success-metric",
-                                        options=[
-                                            {
-                                                "label": "Revenu moyen par film",
-                                                "value": "avg_revenue",
-                                            },
-                                            {
-                                                "label": "Note moyenne",
-                                                "value": "avg_rating",
-                                            },
-                                        ],
-                                        value="avg_revenue",
-                                        labelStyle={"display": "block", "margin": "10px 0"},
-                                    ),
-                                ],
-                            ),
-                            # Informations sur les données
-                            html.Div(
-                                id="data-info",
-                                style={"margin-top": "20px", "font-size": "14px"},
-                            ),
-                        ],
-                    ),
                     # Zone de visualisation
                     html.Div(
-                        style={
-                            "flex": "1",
-                            "min-width": "600px",
-                            "background-color": "white",
-                            "border-radius": "5px",
-                            "box-shadow": "0 2px 4px rgba(0,0,0,0.1)",
-                            "padding": "20px",
-                        },
+                        className='entity-bar-card',
                         children=[
-                            dcc.Graph(id="main-bar-chart", style={"height": "70vh"}),
+                            dcc.Graph(id="main-bar-chart", 
+                                      className="entity-bar-container"),
                             html.Div(
-                                id="entities-chart-info",
-                                style={"margin-top": "20px", "text-align": "center"},
+                                className='main-entity-bar-pannel',
+                                children=[
+                                    html.Div(
+                                        children=[
+                                            dcc.RadioItems(
+                                                id="entity-type",
+                                                options=[
+                                                    {
+                                                        "label": "Acteurs",
+                                                        "value": "actors",
+                                                    },
+                                                    {"label": "Réalisateurs", "value": "directors"},
+                                                    {"label": "Studios", "value": "studios"},
+                                                ],
+                                                value="actors",
+                                                inputClassName='radio-input',
+                                                labelClassName='radio-label'
+                                            ),
+                                        ],
+                                    ),
+                                    html.Div(
+                                        children=[
+                                            dcc.RadioItems(
+                                                id="success-metric",
+                                                options=[
+                                                    {
+                                                        "label": "Revenu moyen par film",
+                                                        "value": "avg_revenue",
+                                                    },
+                                                    {
+                                                        "label": "Note moyenne",
+                                                        "value": "avg_rating",
+                                                    },
+                                                ],
+                                                value="avg_revenue",
+                                                inputClassName='radio-input',
+                                                labelClassName='radio-label'
+                                            ),
+                                        ],
+                                    ),
+                                ],
                             ),
                         ],
                     ),
                     # Zone mini vis
                     html.Div(
-                        style={"display": "flex", "flex-wrap": "wrap", "padding": "20px"},
+                        className='entity-bar-card',
                         children=[
-                            html.Div(
-                                style={
-                                    "flex": "1",
-                                    "min-width": "600px",
-                                    "background-color": "white",
-                                    "border-radius": "5px",
-                                    "box-shadow": "0 2px 4px rgba(0,0,0,0.1)",
-                                    "padding": "20px",
-                                },
-                                children=[
-                                    dcc.Graph(
-                                        id="mini-bar-chart", style={"height": "70vh"}
-                                    ),
-                                    html.Div(
-                                        id="mini-chart-info",
-                                        style={
-                                            "margin-top": "20px",
-                                            "text-align": "center",
-                                        },
-                                    ),
-                                ],
-                            ),
+                            dcc.Graph(
+                                className="entity-bar-container",
+                                id="mini-bar-chart", style={"height": "70vh"}),
                             # Selection de l'ordre
                             html.Div(
-                                style={"margin-bottom": "20px"},
+                                className='mini-entity-bar-pannel',
                                 children=[
-                                    html.Textarea(
+                                    html.P(
                                         id="actor-selected",
-                                        style={"text-align": "center"},
-                                    ),
-                                    html.Label("Ordre des films:"),
+                                        style={
+                                            "display": "none",
+                                        }),
+                                    html.H3('Ordre', className='countries-card-label'),
+                                    html.Hr(className='hr-label'),
                                     dcc.RadioItems(
                                         id="mini-order",
                                         options=[
                                             {
-                                                "label": "Revenus",
+                                                "label": "Revenue",
                                                 "value": "revenue",
                                             },
                                             {
@@ -162,7 +99,8 @@ def get_entities_chart():
                                             },
                                         ],
                                         value="revenue",
-                                        labelStyle={"display": "block", "margin": "10px 0"},
+                                        inputClassName='radio-input',
+                                        labelClassName='radio-label'
                                     ),
                                 ],
                             ),
@@ -170,8 +108,6 @@ def get_entities_chart():
                     ),
                 ],
             ),
-            # Graphique caché pour histogramme des films d'un acteur
-            html.Div(id="actor-movies-container", style={"display": "none"}),
         ],
     )
 
@@ -179,8 +115,6 @@ def get_entities_chart():
     [
         Output("main-bar-chart", "figure"),
         Output("mini-bar-chart", "figure"),
-        Output("entities-chart-info", "children"),
-        Output("data-info", "children"),
         Output("actor-selected", "value"),
     ],
     [
@@ -248,11 +182,7 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
     # Créer le graphique à barres
     title = f"Top {count} {entity_type_display} {note_text} par {metric_display} (min. {min_films} films)"
 
-    # Décider si on affiche les noms sur l'axe X
-    show_tick_labels = count <= 30
-
     # Génération d'une palette de couleurs dégradée
-    colors = [f"rgba(66, 133, 244, {1 - (i/count)*0.7})" for i in range(count)]
 
     # Créer le graphique à barres
     fig = go.Figure()
@@ -265,11 +195,10 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
             go.Bar(
                 x=[entity_name],
                 y=[row[metric]],
-                text=[row["formatted_value"]],
                 hoverinfo="text",
                 hovertext=[f"<b>{entity_name}<b>"],
-                marker_color=colors[i],
-                textposition="outside",
+                marker_color='#e43d12',
+                textposition=None,
                 textfont_size=10,
                 width=1,
                 name=entity_name,
@@ -283,12 +212,14 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
             "x": 0.5,
             "xanchor": "center",
             "yanchor": "top",
+            'font': {
+                'color': '#e43d12',
+            },
         },
         xaxis={
-            "title": "",
+            "title": f"{entity_type_display}",
             "tickangle": -45,
-            "showticklabels": show_tick_labels,
-            "tickfont": {"size": 10},
+            "showticklabels": False,
             "categoryorder": "total descending",
         },
         yaxis={
@@ -298,12 +229,14 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
             "zerolinecolor": "lightgray",
             "gridcolor": "lightgray",
         },
-        margin={"l": 50, "r": 20, "b": 100 if show_tick_labels else 50, "t": 100},
         plot_bgcolor="white",
-        hoverlabel={
-            "bgcolor": "white",
-            "font_size": 12,
-        },
+        hoverlabel = dict(
+            bgcolor="#ECE9E1",
+            font_size=14,
+            font_family="system-ui",
+            font_color="#e43d12",
+            bordercolor="#e43d12",
+        ),
         uniformtext_minsize=8,
         uniformtext_mode="hide",
         height=600,
@@ -311,41 +244,6 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
         hovermode="closest",
     )
 
-    # Si plus de 30 entités, cacher les noms mais garder l'effet visuel
-    if not show_tick_labels:
-        fig.add_annotation(
-            text="Plus de 30 entités affichées : les noms sont masqués pour éviter l'encombrement",
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=-0.15,
-            showarrow=False,
-            font=dict(size=12, color="gray"),
-        )
-
-    # Informations sur le graphique
-    chart_info = html.Div(
-        [
-            html.P(
-                f"Ce graphique montre les {count} {entity_type_display.lower()} avec le {metric_display} le plus élevé"
-            ),
-            html.P(
-                f"Seules les entités ayant participé à au moins {min_films} films sont incluses"
-            ),
-        ]
-    )
-
-    # Informations sur les données
-    data_info = html.Div(
-        [
-            html.P(
-                f"Total {entity_type_display.lower()} avec ≥{min_films} films: {len(df_to_use)}"
-            ),
-            html.P(f"Valeur maximale: {sorted_df[metric].max():.2f}"),
-            html.P(f"Valeur minimale: {sorted_df[metric].min():.2f}"),
-            html.P(f"Valeur moyenne: {sorted_df[metric].mean():.2f}"),
-        ]
-    )
 
     if trigger_id == "success-metric":
         entity_name = None
@@ -400,9 +298,16 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                         + "<b> Revenu total :</b> {display_revenue:.2f} M <br>".format(
                             display_revenue=revenue / 1000000
                         )
-                        + "<b> Year :</b> {year} <br>".format(year=annee)
+                        + "<b> Année :</b> {year} <br>".format(year=annee)
                     ],
-                    marker_color=colors[i],
+                    hoverlabel = dict(
+                        bgcolor="#ECE9E1",
+                        font_size=14,
+                        font_family="system-ui",
+                        font_color="#e43d12",
+                        bordercolor="#e43d12",
+                    ),
+                    marker_color='#e43d12',
                     textposition="outside",
                     textfont_size=10,
                     width=0.8,
@@ -417,6 +322,9 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                 "x": 0.5,
                 "xanchor": "center",
                 "yanchor": "top",
+                'font': {
+                    'color': '#e43d12',
+                },  
             },
             xaxis={
                 "title": "",
@@ -430,7 +338,6 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                 "zerolinecolor": "lightgray",
                 "gridcolor": "lightgray",
             },
-            margin={"l": 50, "r": 20, "b": 150, "t": 100},
             plot_bgcolor="white",
             height=600,
             showlegend=False,
@@ -439,4 +346,32 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
     else:
         mini_fig = get_empty_figure()
 
-    return (fig, mini_fig, chart_info, data_info, actor_selected)
+    return (fig, mini_fig, actor_selected)
+
+
+def get_entities_chart():
+    return html.Div(
+        className='text',
+        children=[
+            html.H1(
+                "ACTEURS, REALISATEURS ET STUDIOS",
+                className='text-title'
+            ),
+            html.P(
+                """
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                Seules les entités ayant participé à au moins films sont incluses
+                """,
+                className='text-paragraph'
+            ),
+            get_chart(),
+            html.P(
+                """
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                """,
+                className='text-paragraph'
+            ),
+        ]
+    )
