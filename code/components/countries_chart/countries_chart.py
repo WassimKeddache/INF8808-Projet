@@ -51,7 +51,6 @@ def get_chart():
                             style={'height': '70vh'},
                             config={'displayModeBar': True}
                         ),
-                        html.Div(id='chart-info', className='chart-info')
                     ]
                 )
             ])
@@ -59,8 +58,7 @@ def get_chart():
     ])
 
 @callback(
-    [Output('bar-chart', 'figure'),
-     Output('chart-info', 'children')],
+    [Output('bar-chart', 'figure')],
     [Input('success-criteria', 'value'),
      Input('genre-filter', 'value')]
 )
@@ -122,7 +120,7 @@ def update_bar_chart(criteria, selected_genre):
             x=['genre', 'total'],
             orientation='h',
             barmode='relative',
-            color_discrete_sequence=['#efb11d', '#e43d12'],
+            color_discrete_sequence=['#006084', '#008466'],
             labels={
                 'country': 'Pays',
                 'value': 'Nombre de Films',
@@ -142,8 +140,8 @@ def update_bar_chart(criteria, selected_genre):
                     bgcolor="#ECE9E1",  # Couleur de fond
                     font_size=14,     # Taille de la police
                     font_family="system-ui",
-                    font_color="#efb11d",  # Couleur du texte
-                    bordercolor="#efb11d",  # Couleur de la bordure
+                    font_color="#008466",  # Couleur du texte
+                    bordercolor="#008466",  # Couleur de la bordure
                 )
             else:  # Trace du total
                 trace.hovertemplate = '<b>%{y}</b><br>Total: %{customdata}<br>Ratio: %{text}<extra></extra>'
@@ -153,8 +151,8 @@ def update_bar_chart(criteria, selected_genre):
                     bgcolor="#ECE9E1",  # Couleur de fond
                     font_size=14,     # Taille de la police
                     font_family="system-ui",
-                    font_color="#e43d12",  # Couleur du texte
-                    bordercolor="#e43d12",  # Couleur de la bordure
+                    font_color="#006084",  # Couleur du texte
+                    bordercolor="#006084",  # Couleur de la bordure
                 )
     else:
         fig = px.bar(
@@ -162,7 +160,7 @@ def update_bar_chart(criteria, selected_genre):
             y='country',
             x='total',
             orientation='h',
-            color_discrete_sequence=['#e43d12'],  # Bleu pour total
+            color_discrete_sequence=['#006084'],  # Bleu pour total
             labels={
                 'country': 'Pays',
                 'total': 'Nombre de Films'
@@ -175,16 +173,18 @@ def update_bar_chart(criteria, selected_genre):
             bgcolor="#ECE9E1",
             font_size=14,
             font_family="system-ui",
-            font_color="#e43d12",
-            bordercolor="#e43d12",
+            font_color="#006084",
+            bordercolor="#006084",
         )
     fig.update_layout(
         title ={
             'text': f"Top 10 Pays par Nombre de Films avec {'un Revenue' if criteria == 'revenue' else 'une Note'} > {threshold_text}",
             'font': {
-                'color': '#e43d12',
+                'color': '#006084',
+                'family': 'system-ui',
             },
         },
+        font_family="system-ui",
         xaxis_title="Nombre de Films",
         yaxis_title="Pays",
         legend=dict(
@@ -197,6 +197,9 @@ def update_bar_chart(criteria, selected_genre):
         margin=dict(l=20, r=20, t=60, b=20),
         height=600
     )
+
+    fig.update_xaxes(title_font_family="system-ui")
+    fig.update_yaxes(title_font_family="system-ui")
     
     genre_text = f"Genre: {selected_genre}" if selected_genre else "Aucun genre sélectionné" # Texte d'information
     total_successful = sum(successful_films)
@@ -212,7 +215,7 @@ def update_bar_chart(criteria, selected_genre):
     # Information de débogage
     debug_text = f"Données agrégées: {len(agg_df)} pays, max={agg_df['successful_films'].max()} films dépassant le seuil"
     
-    return fig, info_text
+    return [fig]
 
 def get_countries_chart():
     return html.Div(

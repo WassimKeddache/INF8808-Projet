@@ -92,8 +92,12 @@ def create_scatter(x_var, y_var):
         "Popularité : %{customdata[4]:.2f}<br>" +
         "Durée : %{customdata[5]:.0f} min<extra></extra>"
     )
+
+    
 )
 
+    fig.update_xaxes(title_font_family="system-ui")
+    fig.update_yaxes(title_font_family="system-ui")
     return dcc.Graph(
         figure=fig,
         config={'responsive': True},

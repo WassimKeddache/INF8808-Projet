@@ -124,11 +124,11 @@ def update_heatmaps(selected_metric):
         x=budget_df['release_date'],
         y=budget_df['genre'],
         colorscale = [
-            [0.0, "#f9c6b5"],   # rose très clair
-            [0.2, "#f39271"],   # orange clair
-            [0.4, "#ec6842"],   # orange foncé
-            [0.6, "#e43d12"],   # rouge-orangé intense
-            [1.0, "#a0210c"],   # rouge brun très foncé
+            [0.0, "#b3d8e0"],   # bleu très clair
+            [0.2, "#66b0c0"],   # bleu clair
+            [0.4, "#3390a0"],   # bleu moyen
+            [0.6, "#0f6f84"],   # bleu foncé
+            [1.0, "#006084"],   # bleu très foncé (base)
         ],
         zmin=budget_min_avg,
         zmax=budget_max_avg,
@@ -143,8 +143,8 @@ def update_heatmaps(selected_metric):
             bgcolor="#ECE9E1",  # Couleur de fond
             font_size=14,     # Taille de la police
             font_family="system-ui",
-            font_color='#e43d12',  # Couleur du texte
-            bordercolor='#e43d12',  # Couleur de la bordure
+            font_color='#006084',  # Couleur du texte
+            bordercolor='#006084',  # Couleur de la bordure
         )
     ))
     
@@ -153,7 +153,7 @@ def update_heatmaps(selected_metric):
         title= {
             'text': 'Budget moyen par genre (depuis 1970, par année)',
             'font': {
-                'color': '#e43d12',
+                'color': '#006084',
             },
             'x': 0.5,  # Centrer le titre horizontalement
             'xanchor': 'center'
@@ -181,7 +181,7 @@ def update_heatmaps(selected_metric):
         hoverlabel=dict(
             bgcolor="white",
             font_size=12,
-            font_family="Arial"
+            font_family="system-ui",
         )
     )
     
@@ -194,18 +194,18 @@ def update_heatmaps(selected_metric):
     # Utiliser les échelles de couleur standard
     color_scales = {
         'revenue': [
-            [0.0, "#fbe8c2"],   # crème très clair
-            [0.2, "#f6d27c"],   # jaune pâle
-            [0.4, "#f1be3e"],   # jaune foncé
-            [0.6, "#efb11d"],   # jaune orangé intense
-            [1.0, "#a87410"],   # brun doré foncé
+            [0.0, "#b3e0d4"],   # vert-bleuté très clair
+            [0.2, "#66c0aa"],   # vert-bleuté clair
+            [0.4, "#33a188"],   # vert-bleuté moyen
+            [0.6, "#0f866f"],   # vert-bleuté foncé
+            [1.0, "#008466"],   # vert-bleuté très foncé (base)
         ],
         'vote_average': [
-            [0.0, "#ffe6ec"],   # rose très clair
-            [0.2, "#ffc7d3"],   # rose pastel
-            [0.4, "#ffa2b6"],   # rose saumon intense
-            [0.6, "#e17b93"],   # rose framboise
-            [1.0, "#b5536a"],   # vieux rose foncé
+            [0.0, "#b3bbe0"],   # bleu lavande très clair
+            [0.2, "#6679c0"],   # bleu lavande plus soutenu
+            [0.4, "#3346a1"],   # bleu moyen tirant vers le vif
+            [0.6, "#101f93"],   # bleu foncé
+            [1.0, "#001e84"],   # bleu très foncé (base)
         ]
     }
     
@@ -223,7 +223,7 @@ def update_heatmaps(selected_metric):
     ))
     
     # Ajouter ensuite les cellules non-nulles avec l'échelle de couleur normale (au-dessus)
-    title_color = '#efb11d' if selected_metric == 'revenue' else '#b5536a'
+    title_color = '#008466' if selected_metric == 'revenue' else '#001e84'
 
     metric_fig.add_trace(go.Heatmap(
         z=np.where(metric_mask, np.nan, metric_df[selected_metric]),  # Remplacer les 0 par NaN
@@ -281,9 +281,14 @@ def update_heatmaps(selected_metric):
         hoverlabel=dict(
             bgcolor="white",
             font_size=12,
-            font_family="Arial"
+            font_family="system-ui",
         )
     )
+    budget_fig.update_xaxes(title_font_family="system-ui")
+    budget_fig.update_yaxes(title_font_family="system-ui")
+    metric_fig.update_yaxes(title_font_family="system-ui")
+    metric_fig.update_xaxes(title_font_family="system-ui")
+
     
     return budget_fig, metric_fig
 

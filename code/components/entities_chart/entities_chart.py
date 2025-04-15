@@ -345,6 +345,11 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
     else:
         mini_fig = get_empty_figure()
 
+    fig.update_xaxes(title_font_family="system-ui")
+    fig.update_yaxes(title_font_family="system-ui")
+    mini_fig.update_xaxes(title_font_family="system-ui")
+    mini_fig.update_yaxes(title_font_family="system-ui")
+
     return (fig, mini_fig, actor_selected)
 
 
