@@ -4,9 +4,9 @@
 
     --primary-light: #008466;
 
-    --primary-dark: #001e84;
+    --primary-lighter: #98f4fc;
 
-    --secondary-color: #efb11d;
+    --primary-dark: #001e84;
 
     --background-color: #ECE9E1;
 
@@ -60,7 +60,7 @@ footer.main-footer p {
 }
 
 footer.main-footer a {
-    color: var(--secondary-color);
+    color: var(--primary-lighter);
     text-decoration: none;
 }
 
@@ -539,7 +539,7 @@ footer.main-footer li {
 
 .text-paragraph {
     text-align: left;
-    color: var(--primary-color);
+    color: var(--text-title-color);
     font-size: 1rem;
     font-weight: 600;
     margin-bottom: 100px;

@@ -120,7 +120,7 @@ def update_bar_chart(criteria, selected_genre):
             x=['genre', 'total'],
             orientation='h',
             barmode='relative',
-            color_discrete_sequence=['#006084', '#008466'],
+            color_discrete_sequence=['#008466', '#006084'],
             labels={
                 'country': 'Pays',
                 'value': 'Nombre de Films',

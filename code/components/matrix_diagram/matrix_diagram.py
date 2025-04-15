@@ -67,7 +67,7 @@ def create_scatter(x_var, y_var):
         hoverlabel=dict(
             bgcolor='#ECE9E1',
             bordercolor='#006084',
-            font=dict(color='black')
+            font=dict(color='#006084')
         ),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
