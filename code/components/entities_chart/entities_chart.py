@@ -196,7 +196,7 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                 y=[row[metric]],
                 hoverinfo="text",
                 hovertext=[f"<b>{entity_name}<b>"],
-                marker_color='#e43d12',
+                marker_color='#006084',
                 textposition=None,
                 textfont_size=10,
                 width=1,
@@ -212,7 +212,7 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
             "xanchor": "center",
             "yanchor": "top",
             'font': {
-                'color': '#e43d12',
+                'color': '#006084',
             },
         },
         xaxis={
@@ -233,8 +233,8 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
             bgcolor="#ECE9E1",
             font_size=14,
             font_family="system-ui",
-            font_color="#e43d12",
-            bordercolor="#e43d12",
+            font_color="#006084",
+            bordercolor="#006084",
         ),
         uniformtext_minsize=8,
         uniformtext_mode="hide",
@@ -303,10 +303,10 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                         bgcolor="#ECE9E1",
                         font_size=14,
                         font_family="system-ui",
-                        font_color="#e43d12",
-                        bordercolor="#e43d12",
+                        font_color="#006084",
+                        bordercolor="#006084",
                     ),
-                    marker_color='#e43d12',
+                    marker_color='#006084',
                     textposition="outside",
                     textfont_size=10,
                     width=0.8,
@@ -322,7 +322,7 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                 "xanchor": "center",
                 "yanchor": "top",
                 'font': {
-                    'color': '#e43d12',
+                    'color': '#006084',
                 },  
             },
             xaxis={
@@ -361,11 +361,6 @@ def get_entities_chart():
                 On vise à explorer l’impact potentiel des acteurs, réalisateurs et studios de production sur le succès 
                 d’un film, mesuré à travers le revenu moyen ou la note moyenne de leurs œuvres. Seules les entités (acteurs, réalisateurs et studios) ayant participé à au moins 10 films sont incluses
                 Il est possible d'avoir plus d'informations sur la filmographie de l'entité en cliquant sur les barres du graphique.
-                """,
-                className='text-paragraph'
-            ),
-            html.P(
-                """
                 À première vue, on peut formuler l’hypothèse que les studios et les réalisateurs influencent 
                 davantage le succès d’un film. Leur filmographie présente souvent une certaine constance dans les 
                 revenus générés et les notes obtenues, contrairement aux acteurs dont l’impact semble plus variable 
