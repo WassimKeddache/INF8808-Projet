@@ -88,8 +88,6 @@ def update_heatmaps(selected_metric):
     revenue_df = data['revenue_df']
     vote_df = data['vote_df']
 
-    # Calculer les moyennes par genre et année
-    budget_df = budget_df
     metric_df = vote_df if selected_metric == 'vote_average' else revenue_df
     
     # Définir les années à afficher (tous les 5 ans)

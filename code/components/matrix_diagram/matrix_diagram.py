@@ -5,30 +5,13 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import pandas as pd
 import json
-
-app = dash.Dash(__name__)
-app.title = 'Quels ingrédients font le succès d’un film ?'
+from .matrix_diagram_data import MatrixData
 
 # ============================================================
 # Data Loading and Preprocessing
 # ============================================================
 
-df = pd.read_csv("../data/combined.csv")
-
-def extract_genres(genres_json):
-    try:
-        genres_json = genres_json.replace('""', '"')
-        return [genre['name'] for genre in json.loads(genres_json)]
-    except Exception:
-        return []
-
-df['genres_list'] = df['genres'].apply(extract_genres)
-df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
-df['release_year'] = df['release_date'].dt.year
-
-df = df.dropna(subset=['budget', 'revenue', 'popularity', 'vote_count', 'vote_average', 'runtime'])
-df = df[(df['budget'] > 0) & (df['revenue'] > 0)]
-
+data_instance = MatrixData()
 # ============================================================
 # Label Mapping and Variables
 # ============================================================
@@ -47,6 +30,7 @@ vars_for_corr = ['budget', 'revenue', 'popularity', 'vote_average', 'runtime']
 # ============================================================
 
 def create_scatter(x_var, y_var):
+    df = data_instance.get_matrix_data()['df']
     dff = df.iloc[::10]
     fig = px.scatter(
         dff,
