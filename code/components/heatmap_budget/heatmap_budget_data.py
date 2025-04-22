@@ -27,15 +27,7 @@ genre_translations = {
 class HeatmapBudgetData:
     def __init__(self):
         df = pd.read_csv("../data/combined.csv")
-
-        df['genres_list'] = df['genres'].apply(self.extract_genres)
-
-        df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
-        df = df.dropna(subset=['release_date'])
-        df['release_date'] = df['release_date'].dt.year
-        df['release_date'] = df['release_date'].astype(int)
-
-        self.preprocess_heatmap_data(df)
+        self.preprocess_data(df)
 
     def extract_genres(self, genres_json):
         try:
@@ -51,7 +43,14 @@ class HeatmapBudgetData:
             print(f"JSON problématique: {genres_json}")
             return []
         
-    def preprocess_heatmap_data(self, df):
+    def preprocess_data(self, df):
+        df['genres_list'] = df['genres'].apply(self.extract_genres)
+
+        df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
+        df = df.dropna(subset=['release_date'])
+        df['release_date'] = df['release_date'].dt.year
+        df['release_date'] = df['release_date'].astype(int)
+
         df_exploded = df.explode('genres_list').rename(columns={'genres_list': 'genre'})
 
         # Filtrer pour n'avoir que les données depuis 1970

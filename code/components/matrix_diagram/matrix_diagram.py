@@ -108,77 +108,80 @@ def create_scatter(x_var, y_var):
 # Group Interpretations and Graphs
 # ============================================================
 
-group1_header = html.H4("Indicateurs de succès financiers et d’audience : Budget, Revenue et Popularité", className="text-subtitle")
-group1_description = html.P(
-    "Les données montrent une chose très claire : plus un film a un budget élevé, plus il a de chances de générer des revenus importants. La corrélation entre le budget et le revenu est forte (0.71). Mais l’argent ne fait pas tout. La popularité — un indicateur de visibilité ou d'engouement du public — est elle aussi bien corrélée au revenu (0.6) et au budget (0.43). Conclusion : un gros budget combiné à un bon niveau de buzz semble être un duo gagnant pour atteindre le succès commercial.",
-    className='text-paragraph'
-)
-group1_graphs = html.Div(
-    className='group-graph-wrapper',
-    children=[
-        html.Div(
-            className='group-graph-container',
-            children=[
-                create_scatter("budget", "revenue"),
-                create_scatter("budget", "popularity"),
-                create_scatter("revenue", "popularity")
-            ]
-        ),
-    ]
-)
 
-group2_header = html.H4("Indicateurs de perception qualitative : Vote", className="text-subtitle")
-group2_description = html.P(
-    "On pourrait croire qu’un film bien noté est forcément un film qui marche. Mais nos données racontent une autre histoire. La note moyenne n’a qu’une faible corrélation avec le revenu (0.19), et encore moins avec le budget (-0.03). Cela suggère qu’un film peut cartonner au box-office sans pour autant récolter des éloges du public ou des critiques. Conclusion : la qualité perçue est un facteur secondaire pour le succès immédiat. Un film “moyen” peut tout à fait trouver son public.",
-    className='text-paragraph'
-)
+def get_chart_content():
+    group1_header = html.H4("Indicateurs de succès financiers et d’audience : Budget, Revenue et Popularité", className="text-subtitle")
+    group1_description = html.P(
+        "Les données montrent une chose très claire : plus un film a un budget élevé, plus il a de chances de générer des revenus importants. La corrélation entre le budget et le revenu est forte (0.71). Mais l’argent ne fait pas tout. La popularité — un indicateur de visibilité ou d'engouement du public — est elle aussi bien corrélée au revenu (0.6) et au budget (0.43). Conclusion : un gros budget combiné à un bon niveau de buzz semble être un duo gagnant pour atteindre le succès commercial.",
+        className='text-paragraph'
+    )
+    group1_graphs = html.Div(
+        className='group-graph-wrapper',
+        children=[
+            html.Div(
+                className='group-graph-container',
+                children=[
+                    create_scatter("budget", "revenue"),
+                    create_scatter("budget", "popularity"),
+                    create_scatter("revenue", "popularity")
+                ]
+            ),
+        ]
+    )
 
-group2_graphs = html.Div(
-    className='group-graph-wrapper',
-    children=[
-        html.Div(
-            className='group-graph-container',
-            children=[
-                create_scatter("budget", "vote_average"),
-                create_scatter("revenue", "vote_average"),
-                create_scatter("popularity", "vote_average")
-            ]
-        )
-    ]
-)
+    group2_header = html.H4("Indicateurs de perception qualitative : Vote", className="text-subtitle")
+    group2_description = html.P(
+        "On pourrait croire qu’un film bien noté est forcément un film qui marche. Mais nos données racontent une autre histoire. La note moyenne n’a qu’une faible corrélation avec le revenu (0.19), et encore moins avec le budget (-0.03). Cela suggère qu’un film peut cartonner au box-office sans pour autant récolter des éloges du public ou des critiques. Conclusion : la qualité perçue est un facteur secondaire pour le succès immédiat. Un film “moyen” peut tout à fait trouver son public.",
+        className='text-paragraph'
+    )
 
-group3_header = html.H4("Indicateurs de durée : Durée", className="text-subtitle")
-group3_description = html.P(
-    "La durée des films est un indicateur qu’on pourrait croire plus influent. Pourtant, les chiffres montrent le contraire. Les corrélations entre la durée et les autres variables sont faibles (0.23 avec le budget et le revenu, 0.18 avec la popularité, 0.38 avec la note moyenne). Conclusion : la durée n’a pas d’impact direct fort. Elle peut jouer un rôle indirect, par exemple sur le nombre de séances ou le rythme d’un film, mais ce n’est pas un facteur déterminant en soi.",
-    className='text-paragraph'
-)
+    group2_graphs = html.Div(
+        className='group-graph-wrapper',
+        children=[
+            html.Div(
+                className='group-graph-container',
+                children=[
+                    create_scatter("budget", "vote_average"),
+                    create_scatter("revenue", "vote_average"),
+                    create_scatter("popularity", "vote_average")
+                ]
+            )
+        ]
+    )
 
-group3_graphs = html.Div(
-    className='group-graph-wrapper',
-    children=[
-        html.Div(
-            className='group-graph-container',
-            children=[
-                create_scatter("budget", "runtime"),
-                create_scatter("revenue", "runtime"),
-                create_scatter("popularity", "runtime"),
-                create_scatter("vote_average", "runtime")
-            ]
-        )
-    ]
-)
+    group3_header = html.H4("Indicateurs de durée : Durée", className="text-subtitle")
+    group3_description = html.P(
+        "La durée des films est un indicateur qu’on pourrait croire plus influent. Pourtant, les chiffres montrent le contraire. Les corrélations entre la durée et les autres variables sont faibles (0.23 avec le budget et le revenu, 0.18 avec la popularité, 0.38 avec la note moyenne). Conclusion : la durée n’a pas d’impact direct fort. Elle peut jouer un rôle indirect, par exemple sur le nombre de séances ou le rythme d’un film, mais ce n’est pas un facteur déterminant en soi.",
+        className='text-paragraph'
+    )
 
-synthese_header = html.H4("Synthèse", className="text-subtitle")
-synthese_description = html.P(
-    "Le succès commercial (Revenu) est principalement associé à des investissements importants (budget) et à une forte interaction du public (popularité). "
-    "La qualité perçue (Note moyenne), bien qu’importante d’un point de vue critique, n’explique pas à elle seule le succès commercial. "
-    "La durée ne semble pas être un facteur majeur lorsqu’elle est prise isolément.",
-    className='text-paragraph'
-)
+    group3_graphs = html.Div(
+        className='group-graph-wrapper',
+        children=[
+            html.Div(
+                className='group-graph-container',
+                children=[
+                    create_scatter("budget", "runtime"),
+                    create_scatter("revenue", "runtime"),
+                    create_scatter("popularity", "runtime"),
+                    create_scatter("vote_average", "runtime")
+                ]
+            )
+        ]
+    )
 
-# ============================================================
-# Final App Layout with CSS classes applied
-# ============================================================
+    synthese_header = html.H4("Synthèse", className="text-subtitle")
+    synthese_description = html.P(
+        "Le succès commercial (Revenu) est principalement associé à des investissements importants (budget) et à une forte interaction du public (popularité). "
+        "La qualité perçue (Note moyenne), bien qu’importante d’un point de vue critique, n’explique pas à elle seule le succès commercial. "
+        "La durée ne semble pas être un facteur majeur lorsqu’elle est prise isolément.",
+        className='text-paragraph'
+    )
+
+    return [group1_header, group1_description, group1_graphs, group2_header, group2_description, 
+            group2_graphs, group3_header, group3_description, group3_graphs, synthese_header, synthese_description]
+
+
 
 def get_chart():
     return html.Div(className='content', children=[
@@ -195,22 +198,7 @@ def get_chart():
                                 'textAlign': 'left',
                                 'gap': '15px',
                             },
-                            children=[
-                                group1_header,
-                                group1_description,
-                                group1_graphs,
-                                html.Br(),
-                                group2_header,
-                                group2_description,
-                                group2_graphs,
-                                html.Br(),
-                                group3_header,
-                                group3_description,
-                                group3_graphs,
-                                html.Br(),
-                                synthese_header,
-                                synthese_description
-                            ]
+                            children=get_chart_content()
                         )
                     ]
                 )
