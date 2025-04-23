@@ -1,11 +1,6 @@
 import dash
-from dash import html, dcc, callback
-from dash.dependencies import Input, Output, State
-import pandas as pd
-import plotly.express as px
+from dash import html
 import plotly.graph_objects as go
-import json
-from datetime import datetime
 import numpy as np
 from .heatmap_budget_data import data_instance
 
