@@ -31,11 +31,8 @@ class HeatmapBudgetData:
 
     def extract_genres(self, genres_json):
         try:
-            # Remplacer les doubles guillemets par des simples guillemets
             genres_json = genres_json.replace('""', '"')
-            # Analyser le JSON
             genres_list = json.loads(genres_json)
-            # Extraire les noms des genres
 
             return [genre['name'] for genre in genres_list]
         except Exception as e:
@@ -53,40 +50,32 @@ class HeatmapBudgetData:
 
         df_exploded = df.explode('genres_list').rename(columns={'genres_list': 'genre'})
 
-        # Filtrer pour n'avoir que les données depuis 1970
         df_exploded = df_exploded[df_exploded['release_date'] >= 1970]
 
-        df_exploded = df_exploded[~df_exploded['genre'].isna()]  # Supprimer les valeurs NaN
+        df_exploded = df_exploded[~df_exploded['genre'].isna()]
 
-        # Mis à jour des noms de genre
-        all_genre_names = sorted(df_exploded['genre'].unique())  # Trier les genres par ordre alphabétique
+        all_genre_names = sorted(df_exploded['genre'].unique())
         
-        # Appliquer la traduction
         df_exploded['genre'] = df_exploded['genre'].map(genre_translations)
-        all_genre_names = sorted(df_exploded['genre'].dropna().unique())  # Mise à jour avec les noms traduits
+        all_genre_names = sorted(df_exploded['genre'].dropna().unique())
 
-        # Calculer les moyennes par genre et année pour tout le dataset
         all_budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
         all_revenue_avg = df_exploded.groupby(['genre', 'release_date'])['revenue'].mean().reset_index()
 
-        # Calculer les valeurs min et max des MOYENNES pour chaque métrique
         budget_min_avg = all_budget_avg['budget'].min()
         budget_max_avg = all_budget_avg['budget'].max()
 
         revenue_min_avg = all_revenue_avg['revenue'].min()
-        # Définir le max du revenu à 400 millions comme demandé
-        revenue_max_avg = 400000000  # 400 millions
+        revenue_max_avg = 400000000
 
         vote_min_avg = 0
         vote_max_avg = 10
 
-        # Dictionnaire des plages de valeurs pour chaque métrique (basé sur les moyennes)
         metric_ranges = {
             'revenue': [revenue_min_avg, revenue_max_avg],
             'vote_average': [vote_min_avg, vote_max_avg]
         }
 
-        # Obtenir toutes les années depuis 1970
         years = sorted(df_exploded['release_date'].unique())
 
         budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
@@ -98,7 +87,6 @@ class HeatmapBudgetData:
             names=['genre', 'release_date']
         )
         
-        # Créer des DataFrames complets avec des valeurs par défaut de 0
         budget_df = pd.DataFrame(index=complete_index).reset_index()
         budget_df = budget_df.merge(
             budget_avg, on=['genre', 'release_date'], how='left'
