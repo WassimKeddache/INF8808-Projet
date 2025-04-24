@@ -1,6 +1,5 @@
 import pandas as pd
 import json
-import pycountry
 import re
 
 
@@ -166,6 +165,9 @@ class EntitiesChartData:
             return []
     
     def preprocess_data(self, df):
+        """
+        Prétraite les données pour extraire et agréger les informations sur les acteurs, réalisateurs et studios.
+        """
         min_films = 10
 
         # Convertir les colonnes numériques et vérifier les valeurs aberrantes

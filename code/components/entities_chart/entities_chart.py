@@ -1,23 +1,21 @@
 import dash
 from dash import html, dcc, callback
 from dash.dependencies import Input, Output
-import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from .barchar_mini import get_empty_figure
 from .barchar_mini import get_graph_info
 from .entities_chart_data import data_instance
 
 def get_chart():
+    """
+    Génère le composant principal pour afficher les graphiques et analyses des entités (acteurs, réalisateurs, studios).
+    """
     return html.Div(
         className='dashboard-card',
         children=[
-            # En-tête
             html.Div(
                 className='entity-bar-content',
                 children=[
-                    # Panneau de contrôle
-                    # Zone de visualisation
                     html.Div(
                         className='entity-bar-card',
                         children=[
@@ -68,14 +66,12 @@ def get_chart():
                             ),
                         ],
                     ),
-                    # Zone mini vis
                     html.Div(
                         className='entity-bar-card',
                         children=[
                             dcc.Graph(
                                 className="entity-bar-container",
                                 id="mini-bar-chart", style={"height": "70vh"}),
-                            # Selection de l'ordre
                             html.Div(
                                 className='mini-entity-bar-pannel',
                                 children=[
@@ -125,6 +121,35 @@ def get_chart():
     ],
 )
 def update_selection(entity_type, metric, click_data, mini_order, actor_selected):
+    """
+    Met à jour les graphiques principaux et secondaires en fonction des sélections et interactions de l'utilisateur.
+
+    Cette fonction gère les interactions utilisateur pour les graphiques des entités (acteurs, réalisateurs, studios).
+    Elle met à jour :
+        - Le graphique principal affichant les entités triées par métrique sélectionnée (revenu moyen ou note moyenne).
+        - Le graphique secondaire affichant les détails des films associés à une entité sélectionnée.
+
+    Args:
+        entity_type (str): Le type d'entité sélectionné par l'utilisateur.
+            - "actors" : Acteurs.
+            - "directors" : Réalisateurs.
+            - "studios" : Studios.
+        metric (str): La métrique utilisée pour trier les entités.
+            - "avg_revenue" : Revenu moyen par film.
+            - "avg_rating" : Note moyenne.
+        click_data (dict): Les données de clic provenant du graphique principal.
+            - Contient les informations sur l'entité cliquée.
+        mini_order (str): L'ordre de tri pour le graphique secondaire.
+            - "revenue" : Trier par revenu.
+            - "date" : Trier par date de sortie.
+        actor_selected (str): L'entité actuellement sélectionnée (si applicable).
+
+    Returns:
+        tuple: Contient trois éléments :
+            - fig (go.Figure): Le graphique principal mis à jour.
+            - mini_fig (go.Figure): Le graphique secondaire mis à jour.
+            - actor_selected (str): L'entité actuellement sélectionnée.
+    """
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
     min_films = 10
@@ -150,44 +175,35 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
         entity_type_display = "Réalisateurs"
         note_text = ""
         count = 30
-    else:  # studios
+    else:
         df_to_use = studios_agg
         entity_type_display = "Studios"
         note_text = ""
         count = 150
 
-    # Trier les données par la métrique sélectionnée (en ordre décroissant)
     sorted_df = df_to_use.sort_values(by=metric, ascending=False)
 
     # Prendre les N premières entités
     top_entities = sorted_df.head(count)
 
-    # Formatage des valeurs pour l'affichage
     if metric == "avg_revenue":
         y_title = "Revenu moyen par film ($)"
         top_entities["formatted_value"] = top_entities[metric].apply(
             lambda x: f"${x/1000000:.2f}M"
         )
-        hover_template = "%{y:$.2f}"
         metric_display = "revenu moyen"
-    else:  # avg_rating
+    else:
         y_title = "Note moyenne (/10)"
         top_entities["formatted_value"] = top_entities[metric].apply(
             lambda x: f"{x:.1f}/10"
         )
-        hover_template = "%{y:.1f}/10"
         metric_display = "note moyenne"
 
-    # Créer le graphique à barres
     title = f"Top {count} {entity_type_display} {note_text} par {metric_display} (min. {min_films} films)"
 
-    # Génération d'une palette de couleurs dégradée
-
-    # Créer le graphique à barres
     fig = go.Figure()
 
     for i, (_, row) in enumerate(top_entities.iterrows()):
-        entity_id = row["entity_id"]
         entity_name = row["entity_name"]
 
         fig.add_trace(
@@ -313,7 +329,7 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
                     name=entity_name,
                 )
             )
-        # Update mini chart layout
+
         mini_fig.update_layout(
             title={
                 "text": mini_title,
@@ -354,6 +370,9 @@ def update_selection(entity_type, metric, click_data, mini_order, actor_selected
 
 
 def get_entities_chart():
+    """
+    Génère le composant principal pour afficher les graphiques et analyses des acteurs, réalisateurs et studios.
+    """
     return html.Div(
         className='text',
         children=[
