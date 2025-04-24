@@ -35,7 +35,6 @@ def get_chart():
                                 placeholder='Tous les genres'
                             )
                         ]),
-                        
                     ]
                 ),
                 html.Div(
