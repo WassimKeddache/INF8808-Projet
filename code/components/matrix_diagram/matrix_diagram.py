@@ -5,33 +5,41 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import pandas as pd
 import json
-from .matrix_diagram_data import MatrixData
+from .matrix_diagram_data import data_instance
 
-# ============================================================
-# Data Loading and Preprocessing
-# ============================================================
-
-data_instance = MatrixData()
-# ============================================================
-# Label Mapping and Variables
-# ============================================================
-
-factor_label_map = {
-    'budget': 'Budget (USD)',
-    'revenue': 'Revenu (USD)',
-    'popularity': 'Popularité',
-    'vote_average': 'Note moyenne',
-    'runtime': 'Durée (min)'
-}
-vars_for_corr = ['budget', 'revenue', 'popularity', 'vote_average', 'runtime']
-
-# ============================================================
-# Helper function for Individual Scatter Graphs
-# ============================================================
 
 def create_scatter(x_var, y_var):
+    """
+    Crée un graphique de dispersion (scatter plot) interactif entre deux variables.
+
+    Ce graphique permet de visualiser la relation entre deux variables quantitatives
+    issues des données de films. Les points du graphique représentent les films, et
+    des informations supplémentaires sont affichées dans les infobulles au survol.
+
+    Args:
+        x_var (str): Nom de la colonne à utiliser pour l'axe des X.
+            - Exemples : 'budget', 'revenue', 'popularity', 'vote_average', 'runtime'.
+        y_var (str): Nom de la colonne à utiliser pour l'axe des Y.
+            - Exemples : 'budget', 'revenue', 'popularity', 'vote_average', 'runtime'.
+
+    Returns:
+        dcc.Graph: Un composant Dash contenant le graphique de dispersion interactif.
+
+    Notes :
+        - Les données utilisées pour le graphique sont échantillonnées (1 point sur 10) pour
+          améliorer les performances et la lisibilité.
+    """
     df = data_instance.get_matrix_data()['df']
     dff = df.iloc[::10]
+
+    factor_label_map = {
+        'budget': 'Budget (USD)',
+        'revenue': 'Revenu (USD)',
+        'popularity': 'Popularité',
+        'vote_average': 'Note moyenne',
+        'runtime': 'Durée (min)'
+    }
+
     fig = px.scatter(
         dff,
         x=x_var,
@@ -42,6 +50,7 @@ def create_scatter(x_var, y_var):
         color_discrete_sequence=["#006084"],
         labels=factor_label_map
     )
+
     fig.update_layout(
         title=f"{factor_label_map[y_var]} vs {factor_label_map[x_var]}",
         font={
@@ -66,34 +75,32 @@ def create_scatter(x_var, y_var):
             zeroline=False
         )
     )
-    fig.update_traces(
-    hovertemplate=(
-        "<b>%{hovertext}</b><br>" +
-        "Année : %{customdata[0]}<br>" +
-        "Vote moyen : %{customdata[1]}<br>" +
-        "Budget : %{customdata[2]:,.0f} $<br>" +
-        "Revenu : %{customdata[3]:,.0f} $<br>" +
-        "Popularité : %{customdata[4]:.2f}<br>" +
-        "Durée : %{customdata[5]:.0f} min<extra></extra>"
-    )
 
-    
-)
+    fig.update_traces(
+        hovertemplate=(
+            "<b>%{hovertext}</b><br>" +
+            "Année : %{customdata[0]}<br>" +
+            "Vote moyen : %{customdata[1]}<br>" +
+            "Budget : %{customdata[2]:,.0f} $<br>" +
+            "Revenu : %{customdata[3]:,.0f} $<br>" +
+            "Popularité : %{customdata[4]:.2f}<br>" +
+            "Durée : %{customdata[5]:.0f} min<extra></extra>"
+        )
+    )
 
     fig.update_xaxes(title_font_family="system-ui")
     fig.update_yaxes(title_font_family="system-ui")
+
     return dcc.Graph(
         figure=fig,
         config={'responsive': True},
         className="group-graph-card"
     )
 
-# ============================================================
-# Group Interpretations and Graphs
-# ============================================================
-
-
 def get_chart_content():
+    """
+    Génère les graphiques et descriptions pour analyser les corrélations entre les facteurs.
+    """
     group1_header = html.H4("Indicateurs de succès financiers et d’audience : Budget, Revenue et Popularité", className="text-subtitle")
     group1_description = html.P(
         "Les données montrent une chose très claire : plus un film a un budget élevé, plus il a de chances de générer des revenus importants. La corrélation entre le budget et le revenu est forte (0.71). Mais l’argent ne fait pas tout. La popularité — un indicateur de visibilité ou d'engouement du public — est elle aussi bien corrélée au revenu (0.6) et au budget (0.43). Conclusion : un gros budget combiné à un bon niveau de buzz semble être un duo gagnant pour atteindre le succès commercial.",
@@ -118,7 +125,6 @@ def get_chart_content():
         "On pourrait croire qu’un film bien noté est forcément un film qui marche. Mais nos données racontent une autre histoire. La note moyenne n’a qu’une faible corrélation avec le revenu (0.19), et encore moins avec le budget (-0.03). Cela suggère qu’un film peut cartonner au box-office sans pour autant récolter des éloges du public ou des critiques. Conclusion : la qualité perçue est un facteur secondaire pour le succès immédiat. Un film “moyen” peut tout à fait trouver son public.",
         className='text-paragraph'
     )
-
     group2_graphs = html.Div(
         className='group-graph-wrapper',
         children=[
@@ -138,7 +144,6 @@ def get_chart_content():
         "La durée des films est un indicateur qu’on pourrait croire plus influent. Pourtant, les chiffres montrent le contraire. Les corrélations entre la durée et les autres variables sont faibles (0.23 avec le budget et le revenu, 0.18 avec la popularité, 0.38 avec la note moyenne). Conclusion : la durée n’a pas d’impact direct fort. Elle peut jouer un rôle indirect, par exemple sur le nombre de séances ou le rythme d’un film, mais ce n’est pas un facteur déterminant en soi.",
         className='text-paragraph'
     )
-
     group3_graphs = html.Div(
         className='group-graph-wrapper',
         children=[
@@ -165,9 +170,10 @@ def get_chart_content():
     return [group1_header, group1_description, group1_graphs, group2_header, group2_description, 
             group2_graphs, group3_header, group3_description, group3_graphs, synthese_header, synthese_description]
 
-
-
 def get_chart():
+    """
+    Génère le composant principal contenant les graphiques et descriptions pour la matrice de corrélation.
+    """
     return html.Div(className='content', children=[
         html.Div(className='dashboard-card', children=[
             html.Div(className='card-content', children=[
@@ -191,6 +197,9 @@ def get_chart():
     ])
 
 def get_matrix_diagram():
+    """
+    Génère le composant principal pour afficher la matrice de corrélation et ses graphiques associés.
+    """
     return html.Div(
         className='text',
         children=[
