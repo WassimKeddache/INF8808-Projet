@@ -140,7 +140,7 @@ class CountriesChartData:
         countries_df = df.explode('countries')
         countries_df = countries_df[countries_df['countries'].notna() & (countries_df['countries'] != '')]
 
-        all_genres = sorted(list(set([genre for sublist in df['genres_list'].dropna() for genre in sublist])))
+        all_genres = sorted(df['genres_list'].explode().dropna().unique())
         
         self.data = {
             'all_genres': all_genres,
