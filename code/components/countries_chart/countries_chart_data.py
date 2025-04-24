@@ -102,8 +102,10 @@ class CountriesChartData:
         df = pd.read_csv("../data/combined.csv")
         self.preprocess_data(df)
 
-    # Prétraitement des données
     def extract_countries(self, countries_json):
+        """
+        Extrait et traduit les pays d'un JSON en une liste de noms de pays traduits.
+        """
         try:
             countries_json = countries_json.replace('""', '"')
             countries_list = json.loads(countries_json)
@@ -112,6 +114,9 @@ class CountriesChartData:
             return []
 
     def extract_genres(self, genres_json):
+        """
+        Extrait et traduit les genres d'un JSON en une liste de genres traduits.
+        """
         try:
             genres_json = genres_json.replace('""', '"')
             genres_list = json.loads(genres_json)
@@ -121,20 +126,20 @@ class CountriesChartData:
             return []
             
     def preprocess_data(self, df):
+        """
+        Prétraite les données pour extraire les pays, genres et autres colonnes nécessaires.
+        """
         df['countries'] = df['production_countries'].apply(self.extract_countries)
         df['genres_list'] = df['genres'].apply(self.extract_genres)
 
-        # Conversion des dates et création de la colonne décennie
         df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
         df['release_year'] = df['release_date'].dt.year
         df['decade'] = (df['release_year'] // 10) * 10
         df = df.dropna(subset=['release_year', 'budget', 'revenue', 'popularity', 'vote_average'])
 
-        # Explosion des pays pour avoir une ligne par pays de production
         countries_df = df.explode('countries')
         countries_df = countries_df[countries_df['countries'].notna() & (countries_df['countries'] != '')]
 
-        # Liste des genres uniques pour le filtre
         all_genres = sorted(list(set([genre for sublist in df['genres_list'].dropna() for genre in sublist])))
         
         self.data = {

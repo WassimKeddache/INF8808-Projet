@@ -1,15 +1,32 @@
-import dash
-from dash import html, dcc, callback
-from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from .countries_chart_data import data_instance
-from . import callbacks
 
 def update_bar_chart(criteria, selected_genre):
-    # TODO Rendre max abcisse fix
+    """
+    Met à jour le graphique à barres horizontal en fonction du critère de succès et du genre sélectionné.
 
+    Cette fonction génère un graphique interactif montrant les 10 pays ayant le plus grand nombre de films
+    répondant à un critère de succès (revenu ou note moyenne). Si un genre est sélectionné, le graphique
+    affiche également une répartition des films par genre.
+
+    Args:
+        criteria (str): Le critère de succès utilisé pour filtrer les films.
+            - 'revenue' : Filtre les films avec un revenu supérieur à 10M$.
+            - 'vote_average' : Filtre les films avec une note moyenne supérieure à 7.
+        selected_genre (str or None): Le genre de film sélectionné pour filtrer les données.
+            - Si None, aucun filtre par genre n'est appliqué.
+            - Si un genre est spécifié, seuls les films appartenant à ce genre sont pris en compte.
+
+    Returns:
+        list: Une liste contenant un objet `plotly.graph_objects.Figure` représentant le graphique à barres.
+
+    Notes:
+        - Les données sont agrégées par pays pour calculer le nombre total de films et le nombre de films
+          répondant au critère de succès.
+        - Si un genre est sélectionné, une répartition des films par genre est affichée dans un graphique empilé.
+        - Les infobulles (hover) sont personnalisées pour afficher des informations détaillées.
+    """
     if criteria == 'revenue':
         threshold = 10 * 1000000
         threshold_text = "10M$"
@@ -17,6 +34,7 @@ def update_bar_chart(criteria, selected_genre):
         threshold = 7
         threshold_text = "7"
     
+    # Data filtering pour le critère de succès
     filtered_df = data_instance.get_data()['df']
     filtered_df['meets_threshold'] = filtered_df[criteria] >= threshold
     
@@ -24,7 +42,6 @@ def update_bar_chart(criteria, selected_genre):
     
     agg_df.rename(columns={'meets_threshold': 'successful_films', 'title': 'total_films'}, inplace=True)
     
-
     top_countries = agg_df.sort_values('successful_films', ascending=False).head(10)
     
     countries = top_countries['countries'].tolist()
@@ -117,6 +134,7 @@ def update_bar_chart(criteria, selected_genre):
             font_color="#006084",
             bordercolor="#006084",
         )
+
     fig.update_layout(
         title ={
             'text': f"Top 10 Pays par Nombre de Films avec {'un Revenue' if criteria == 'revenue' else 'une Note'} > {threshold_text}",
@@ -141,16 +159,5 @@ def update_bar_chart(criteria, selected_genre):
 
     fig.update_xaxes(title_font_family="system-ui")
     fig.update_yaxes(title_font_family="system-ui")
-    
-    genre_text = f"Genre: {selected_genre}" if selected_genre else "Aucun genre sélectionné"
-    total_successful = sum(successful_films)
-    
-    genre_total = sum(genre_data) if selected_genre else 0
-    ratio_text = f"Ratio {selected_genre}/Total: {genre_total/total_successful*100:.1f}%" if selected_genre and total_successful > 0 else ""
-    
-    info_text = html.Div([
-        html.P(f"Critère: {criteria} > {threshold_text} | {genre_text}"),
-        html.P(f"Total des films dans le top 10 pays: {total_successful} {ratio_text}")
-    ])
     
     return [fig]

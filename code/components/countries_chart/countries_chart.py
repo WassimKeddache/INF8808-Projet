@@ -5,6 +5,9 @@ from . import callbacks
 
 
 def get_chart():
+    """
+    Génère le composant principal du graphique des pays avec filtres et critères.
+    """
     return html.Div(className='content', children=[
         html.Div(className='dashboard-card', children=[
             html.Div(className='countries-card-content', children=[
@@ -35,7 +38,6 @@ def get_chart():
                         
                     ]
                 ),
-                
                 html.Div(
                     className='countries-chart-container',
                     children=[
@@ -56,11 +58,17 @@ def get_chart():
      Input('genre-filter', 'value')]
 )
 def update_bar_chart(criteria, selected_genre):
-    # TODO Rendre max abcisse fix
+    """
+    Met à jour le graphique à barres en fonction du critère de succès et du genre sélectionné.
+    """
     fig = callbacks.update_bar_chart(criteria, selected_genre)
     return fig
 
 def get_countries_chart():
+    """
+    Génère le composant complet pour la visualisation des films par pays, 
+    incluant les filtres, critères et explications.
+    """
     return html.Div(
         className='text',
         children=[
