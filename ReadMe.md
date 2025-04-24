@@ -1,4 +1,4 @@
-```
+
 # INF8808-Projet
 
 Ce projet est une application interactive développée avec Dash pour analyser les données de films. Elle permet de visualiser des graphiques interactifs basés sur des métriques telles que le budget, le revenu, la popularité, et bien plus encore.
