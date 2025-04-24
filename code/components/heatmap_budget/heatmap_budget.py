@@ -9,6 +9,9 @@ from . import callbacks
     [Input('metric-selector', 'value')]
 )
 def update_heatmaps(selected_metric):
+    """
+    Met à jour les heatmaps du budget et de la métrique sélectionnée.
+    """
     budget_fig, metric_fig = callbacks.update_heatmaps(selected_metric)
     return budget_fig, metric_fig
 
@@ -19,10 +22,16 @@ def update_heatmaps(selected_metric):
     [State('metric-selector', 'value')]
 )
 def update_hover_info(budget_hover_data, metric_hover_data, selected_metric):
+    """
+    Met à jour les informations affichées lors du survol des heatmaps.
+    """
     hover_info = callbacks.update_hover_info(budget_hover_data, metric_hover_data, selected_metric)
     return hover_info
 
 def get_chart():
+    """
+    Génère le composant principal contenant les heatmaps et les contrôles associés.
+    """
     return html.Div(className='content', children=[
         html.Div(className='dashboard-card', children=[
             html.Div(className='card-content', children=[
@@ -76,6 +85,10 @@ def get_chart():
 
 
 def get_heatmap_budget():
+    """
+    Génère le composant principal pour la visualisation des heatmaps de budget et métriques,
+    accompagné d'une description textuelle et des contrôles interactifs.
+    """
     return html.Div(
         className='text',
         children=[

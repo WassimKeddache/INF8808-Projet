@@ -30,6 +30,9 @@ class HeatmapBudgetData:
         self.preprocess_data(df)
 
     def extract_genres(self, genres_json):
+        """
+        Extrait et traduit les genres d'un JSON en une liste de genres traduits.
+        """
         try:
             genres_json = genres_json.replace('""', '"')
             genres_list = json.loads(genres_json)
@@ -40,67 +43,48 @@ class HeatmapBudgetData:
             print(f"JSON problématique: {genres_json}")
             return []
         
+    def create_heatmap_df(self, df_exploded, complete_index, metric):
+        metric_avg = df_exploded.groupby(['genre', 'release_date'])[metric].mean().reset_index()
+        metric_df = pd.DataFrame(index=complete_index).reset_index()
+        return metric_df.merge(metric_avg, on=['genre', 'release_date'], how='left').fillna(0)
+
     def preprocess_data(self, df):
+        """
+        Prétraite les données pour extraire les genres, années et autres colonnes nécessaires.
+        """
         df['genres_list'] = df['genres'].apply(self.extract_genres)
 
         df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
         df = df.dropna(subset=['release_date'])
-        df['release_date'] = df['release_date'].dt.year
-        df['release_date'] = df['release_date'].astype(int)
-
+        df['release_date'] = df['release_date'].dt.year.astype(int)
         df_exploded = df.explode('genres_list').rename(columns={'genres_list': 'genre'})
-
-        df_exploded = df_exploded[df_exploded['release_date'] >= 1970]
-
-        df_exploded = df_exploded[~df_exploded['genre'].isna()]
-
-        all_genre_names = sorted(df_exploded['genre'].unique())
+        df_exploded = df_exploded[(df_exploded['release_date'] >= 1970) & (~df_exploded['genre'].isna())]
         
+        # Exclure l'année 2017 en raison d'un manque de données pour cette visualisation
+        df_exploded = df_exploded[df_exploded['release_date'] != 2017]
+
         df_exploded['genre'] = df_exploded['genre'].map(genre_translations)
+
         all_genre_names = sorted(df_exploded['genre'].dropna().unique())
-
-        all_budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
-        all_revenue_avg = df_exploded.groupby(['genre', 'release_date'])['revenue'].mean().reset_index()
-
-        budget_min_avg = all_budget_avg['budget'].min()
-        budget_max_avg = all_budget_avg['budget'].max()
-
-        revenue_min_avg = all_revenue_avg['revenue'].min()
-        revenue_max_avg = 400000000
-
-        vote_min_avg = 0
-        vote_max_avg = 10
-
-        metric_ranges = {
-            'revenue': [revenue_min_avg, revenue_max_avg],
-            'vote_average': [vote_min_avg, vote_max_avg]
-        }
+        # Exclure le genre "Téléfilm" en raison d'un manque de données pour cette visualisation
+        all_genre_names = [genre for genre in all_genre_names if genre != 'Téléfilm']
 
         years = sorted(df_exploded['release_date'].unique())
+        complete_index = pd.MultiIndex.from_product([all_genre_names, years], names=['genre', 'release_date'])
 
-        budget_avg = df_exploded.groupby(['genre', 'release_date'])['budget'].mean().reset_index()
-        vote_avg = df_exploded.groupby(['genre', 'release_date'])['vote_average'].mean().reset_index()
-        revenue_avg = df_exploded.groupby(['genre', 'release_date'])['revenue'].mean().reset_index()
 
-        complete_index = pd.MultiIndex.from_product(
-            [all_genre_names, years],
-            names=['genre', 'release_date']
-        )
-        
-        budget_df = pd.DataFrame(index=complete_index).reset_index()
-        budget_df = budget_df.merge(
-            budget_avg, on=['genre', 'release_date'], how='left'
-        ).fillna(0)
-        
-        vote_df = pd.DataFrame(index=complete_index).reset_index()
-        vote_df = vote_df.merge(
-            vote_avg, on=['genre', 'release_date'], how='left'
-        ).fillna(0)
+        budget_df = self.create_heatmap_df(df_exploded, complete_index, 'budget')
+        vote_df = self.create_heatmap_df(df_exploded, complete_index, 'vote_average')
+        revenue_df = self.create_heatmap_df(df_exploded, complete_index, 'revenue')
 
-        revenue_df = pd.DataFrame(index=complete_index).reset_index()
-        revenue_df = revenue_df.merge(
-            revenue_avg, on=['genre', 'release_date'], how='left'
-        ).fillna(0)
+        budget_min_avg = budget_df['budget'].min()
+        budget_max_avg = budget_df['budget'].max()
+        revenue_min_avg = revenue_df['revenue'].min()
+        revenue_max_avg = 400000000  # Valeur constante
+        metric_ranges = {
+            'revenue': [revenue_min_avg, revenue_max_avg],
+            'vote_average': [0, 10]
+        }
 
         self.heatmap_data = {
             'all_genre_names': all_genre_names,

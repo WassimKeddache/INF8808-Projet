@@ -6,6 +6,20 @@ from .heatmap_budget_data import data_instance
 
 
 def update_heatmaps(selected_metric):
+    """
+    Met à jour les deux heatmaps (budget et métrique) en fonction de la métrique sélectionnée.
+
+    Args:
+        selected_metric (str): La métrique actuellement sélectionnée pour la heatmap des métriques.
+            - 'revenue' : Revenu moyen.
+            - 'vote_average' : Vote moyen.
+
+    Returns:
+        tuple: Contient deux objets `plotly.graph_objects.Figure` représentant :
+            - La heatmap du budget moyen par genre et par année.
+            - La heatmap de la métrique sélectionnée (revenue ou vote_average).
+    """
+
     data = data_instance.get_heatmap_data()
     
     all_genre_names = data['all_genre_names']
@@ -18,6 +32,7 @@ def update_heatmaps(selected_metric):
     revenue_df = data['revenue_df']
     vote_df = data['vote_df']
 
+    # Data filtering selon le type de métrique sélectionnée
     metric_df = vote_df if selected_metric == 'vote_average' else revenue_df
     
     tick_years = [year for year in years if (year - 1970) % 5 == 0]
@@ -208,6 +223,35 @@ def update_heatmaps(selected_metric):
 
 
 def update_hover_info(budget_hover, metric_hover, selected_metric):
+    """
+    Met à jour les informations affichées dans la section de survol (hover) des heatmaps.
+
+    Cette fonction détermine les informations à afficher en fonction de la cellule survolée
+    dans l'une des deux heatmaps (budget ou métrique). Si aucune cellule n'est survolée,
+    un message par défaut est affiché.
+
+    Args:
+        budget_hover (dict): Données de survol provenant de la heatmap du budget.
+            - Contient des informations sur la cellule survolée.
+        metric_hover (dict): Données de survol provenant de la heatmap de la métrique.
+            - Contient des informations similaires à celles de `budget_hover`.
+        selected_metric (str): La métrique actuellement sélectionnée pour la heatmap des métriques.
+            - Valeurs possibles : 'revenue' (Revenu moyen) ou 'vote_average' (Vote moyen).
+
+    Returns:
+        list: Une liste contenant un composant HTML Dash (`html.Div`) représentant les informations
+        de survol à afficher. Ce composant inclut :
+            - Le genre de film.
+            - L'année associée.
+            - Le budget moyen.
+            - La valeur de la métrique sélectionnée (revenue ou vote_average).
+
+    Notes:
+        - Si aucune cellule n'est survolée ou si le survol ne correspond pas à une heatmap valide,
+          un message par défaut est retourné.
+        - Les données de survol sont extraites des propriétés `customdata` des points survolés
+          dans les heatmaps.
+    """
     ctx = dash.callback_context
 
     default_hover = html.Div(
