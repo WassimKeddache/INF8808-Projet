@@ -11,7 +11,7 @@ def get_description():
             html.P(
                 """
                 Dans le cadre de ce projet, nous cherchons à déterminer les facteurs qui influencent le succès 
-                d’un film en nous basant sur une base de données issue d'IMDb. Nous définissons le succès selon 
+                d’un film en nous basant sur une base de données issue de TMDB. Nous définissons le succès selon 
                 deux dimensions complémentaires : d’une part, la performance financière mesurée par le revenu 
                 net du film, et d’autre part, la réception critique représentée par la note moyenne attribuée 
                 par les spectateurs. Cette double définition nous permet d’analyser à la fois l’impact commercial
